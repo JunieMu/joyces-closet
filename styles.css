@@ -1,0 +1,69 @@
+.pink {
+    background-color: #facfcf;
+}
+
+.yellow {
+    background-color: #fef0d6;
+}
+
+.blue {
+    background-color: #d2dae9;
+}
+
+.nav-link {
+    color: #cf7878;
+    font-family:  "Montserrat", sans-serif;
+}
+
+h1 {
+    font-family: "Playfair Display", serif;
+    font-weight: 500;
+    font-size: 50px;
+    text-align: center;
+    color: #8ba9e0;
+}
+
+.tops {
+    width: 70%;
+}
+
+.bottoms {
+    width: 65%;
+}
+
+.shoes, .accessories {
+    width: 60%;
+}
+
+.carousel-inner img {
+    margin: auto;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+height: 100px;
+width: 100px;
+background-size: 100%, 100%;
+background-image: none;
+}
+
+
+.carousel-control-next-icon:after
+{
+content: '>';
+font-size: 55px;
+color: #8ba9e0;
+}
+
+.carousel-control-prev-icon:after {
+content: '<';
+font-size: 55px;
+color: #8ba9e0;
+}
+
+#shuffleAll, .btn {
+    background-color: #ffe8e8;
+    border: 2px solid #cf7878;
+    color: #cf7878;
+    font-family:  "Montserrat", sans-serif;
+}

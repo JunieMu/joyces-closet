@@ -23,7 +23,7 @@ h1 {
     color: #8ba9e0;
 }
 
-.tops {
+.tops, .jackets {
     width: 70%;
 }
 
@@ -67,3 +67,4 @@ color: #8ba9e0;
     color: #cf7878;
     font-family:  "Montserrat", sans-serif;
 }
+

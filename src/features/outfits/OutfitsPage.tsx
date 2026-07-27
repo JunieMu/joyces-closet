@@ -33,17 +33,17 @@ export function OutfitsPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-ink text-center text-4xl font-medium sm:text-5xl">
-        Saved outfits
+        saved outfits
       </h1>
 
       {newestFirst.length === 0 ? (
         <div className="font-body text-ink/60 flex flex-col items-center gap-3 py-10 text-center">
-          <p>Nothing saved yet.</p>
+          <p>nothing saved yet.</p>
           <Link
             to="/"
             className="border-accent/40 text-accent hover:bg-wash/60 rounded-full border px-6 py-2 transition-colors"
           >
-            Put an outfit together
+            put an outfit together
           </Link>
         </div>
       ) : (

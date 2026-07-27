@@ -1,20 +1,11 @@
+import { Link } from "react-router";
+
 import { Rail } from "../../components/Rail";
 import { useCascade } from "../../components/useCascade";
-import { getCloset } from "../closet/closet";
+import { useCloset } from "../closet/closet";
+import { RAIL_FRAME, RAIL_IMAGE_WIDTH } from "../closet/railScale";
+import { missingForOutfit, type MissingCategory } from "./shuffle";
 import { useShuffleStore } from "./useShuffleStore";
-
-// Paper-doll proportions (Decision 6): tops and jackets render at equal scale, the small
-// slots (shoes, accessories) stay smaller. The bottoms frame is tall enough for full-length
-// pants; BOTTOM_IMAGE_WIDTH caps square art (shorts, skirts) at its old rendered size so
-// only the tall pieces use the extra height (never wider than the frame itself).
-const SIZE = {
-  top: "h-52 sm:h-64",
-  jacket: "h-52 sm:h-64",
-  bottom: "h-80 sm:h-96",
-  small: "h-28 sm:h-32",
-};
-
-const BOTTOM_IMAGE_WIDTH = "max-w-[min(12rem,100%)] sm:max-w-[min(15rem,100%)]";
 
 /** Rails enter top-to-bottom on Shuffle All, so the outfit cascades into place (Decision 11). */
 const CASCADE_MS = {
@@ -25,12 +16,53 @@ const CASCADE_MS = {
   accessory: 280,
 };
 
+const MISSING_LABEL: Record<MissingCategory, string> = {
+  tops: "a top",
+  bottoms: "a bottom",
+  shoes: "a pair of shoes",
+};
+
+/** "a top", "a top and a bottom", "a top, a bottom and a pair of shoes". */
+function listMissing(missing: MissingCategory[]): string {
+  const labels = missing.map((category) => MISSING_LABEL[category]);
+  if (labels.length <= 1) return labels.join("");
+  return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
+}
+
+/**
+ * What the shuffle page is before anything has been uploaded — the state every closet now
+ * starts in. It names the pieces still missing rather than just saying "empty", because a
+ * closet full of tops with no shoes looks complete but still can't be shuffled.
+ */
+function NothingToWear({ missing }: { missing: MissingCategory[] }) {
+  return (
+    <div className="flex flex-col items-center gap-5 py-20 text-center">
+      <h1 className="font-display text-ink text-3xl font-medium sm:text-4xl">
+        your closet is waiting
+      </h1>
+      <p className="font-body text-ink/55 max-w-sm text-sm leading-relaxed">
+        Add {listMissing(missing)} and the shuffle starts here. Photos get cut
+        out and sized automatically.
+      </p>
+      <Link
+        to="/closet"
+        className="btn-painterly bg-accent text-paper font-body cursor-pointer rounded-full px-6 py-2.5 text-sm font-medium shadow-sm transition hover:bg-accent/90 active:scale-[0.98]"
+      >
+        add your first piece
+      </Link>
+    </div>
+  );
+}
+
 export function ShufflePage() {
-  const closet = getCloset();
+  const closet = useCloset();
   const outfit = useShuffleStore((state) => state.outfit);
   const shuffleSlot = useShuffleStore((state) => state.shuffleSlot);
   const setSlot = useShuffleStore((state) => state.setSlot);
   const tick = useCascade((state) => state.tick);
+
+  if (outfit === null)
+    return <NothingToWear missing={missingForOutfit(closet)} />;
 
   const { base } = outfit;
 
@@ -94,7 +126,7 @@ export function ShufflePage() {
                 allowNone={false}
                 onChange={(id) => setSlot("top", id)}
                 onShuffle={() => shuffleSlot("top")}
-                className={SIZE.top}
+                className={RAIL_FRAME.tops}
                 cascadeTick={tick}
                 cascadeDelayMs={CASCADE_MS.top}
                 tintClass="text-tint-tops"
@@ -110,7 +142,7 @@ export function ShufflePage() {
                 allowNone={false}
                 onChange={(id) => setSlot("dress", id)}
                 onShuffle={() => shuffleSlot("base")}
-                className="h-80 sm:h-96"
+                className={RAIL_FRAME.dresses}
                 cascadeTick={tick}
                 cascadeDelayMs={CASCADE_MS.top}
                 tintClass="text-tint-dresses"
@@ -127,7 +159,7 @@ export function ShufflePage() {
               allowNone
               onChange={(id) => setSlot("jacket", id)}
               onShuffle={() => shuffleSlot("jacket")}
-              className={SIZE.jacket}
+              className={RAIL_FRAME.jackets}
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.jacket}
               tintClass="text-tint-jackets"
@@ -143,8 +175,8 @@ export function ShufflePage() {
                 allowNone={false}
                 onChange={(id) => setSlot("bottom", id)}
                 onShuffle={() => shuffleSlot("bottom")}
-                className={SIZE.bottom}
-                imageClassName={BOTTOM_IMAGE_WIDTH}
+                className={RAIL_FRAME.bottoms}
+                imageClassName={RAIL_IMAGE_WIDTH.bottoms}
                 align="top"
                 cascadeTick={tick}
                 cascadeDelayMs={CASCADE_MS.bottom}
@@ -162,7 +194,7 @@ export function ShufflePage() {
               allowNone={false}
               onChange={(id) => setSlot("shoes", id)}
               onShuffle={() => shuffleSlot("shoes")}
-              className={SIZE.small}
+              className={RAIL_FRAME.shoes}
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.shoes}
               tintClass="text-tint-shoes"
@@ -177,7 +209,7 @@ export function ShufflePage() {
               allowNone
               onChange={(id) => setSlot("accessory", id)}
               onShuffle={() => shuffleSlot("accessory")}
-              className={SIZE.small}
+              className={RAIL_FRAME.accessories}
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.accessory}
               tintClass="text-tint-accessories"

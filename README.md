@@ -11,6 +11,9 @@ typed, tested React app.
 
 ## Features
 
+- **Upload your own clothes** — the closet is whatever you put in it. Photograph a
+  piece, and it's cut out, sized to the paper-doll canvas, and dropped into the
+  shuffle. Rename or delete anything from the closet page.
 - **Shuffle** — generate a complete outfit (base + optional jacket, shoes, optional
   accessory) with one tap.
 - **Per-slot re-roll** — happy with the top but not the shoes? Re-roll just that
@@ -28,9 +31,12 @@ typed, tested React app.
 
 - **React 19** + **TypeScript**
 - **Vite** (build/dev)
-- **React Router** for the two routes
-- **Zustand** for state (shuffle, saved outfits, theme)
+- **React Router** for the three routes
+- **Zustand** for state (closet, shuffle, saved outfits, theme)
 - **Tailwind CSS v4**
+- **IndexedDB** for uploaded image blobs, **localStorage** for outfits and theme
+- **@huggingface/transformers** for in-browser background removal, lazy-loaded in a
+  worker and only fetched when an opaque photo is actually uploaded
 - **Vitest** for unit tests
 - Deployed on **Vercel**
 
@@ -45,30 +51,31 @@ Then open the URL Vite prints (default http://localhost:5173).
 
 ### Scripts
 
-| Command             | What it does                              |
-| ------------------- | ----------------------------------------- |
-| `npm run dev`       | Start the local dev server                |
-| `npm run build`     | Type-check and build for production        |
-| `npm run preview`   | Preview the production build locally       |
-| `npm test`          | Run the test suite once (Vitest)           |
-| `npm run test:watch`| Run tests in watch mode                    |
-| `npm run lint`      | Lint with ESLint                           |
-| `npm run typecheck` | Type-check without emitting                |
-| `npm run format`    | Format with Prettier                       |
+| Command              | What it does                         |
+| -------------------- | ------------------------------------ |
+| `npm run dev`        | Start the local dev server           |
+| `npm run build`      | Type-check and build for production  |
+| `npm run preview`    | Preview the production build locally |
+| `npm test`           | Run the test suite once (Vitest)     |
+| `npm run test:watch` | Run tests in watch mode              |
+| `npm run lint`       | Lint with ESLint                     |
+| `npm run typecheck`  | Type-check without emitting          |
+| `npm run format`     | Format with Prettier                 |
 
 ## Project structure
 
 ```
-public/images/         Clothing PNGs, one folder per category
 src/
   components/          Shared UI (Layout, Rail, OutfitActions, useCascade)
   features/
-    closet/            The wardrobe manifest + item types
+    closet/            The closet store, item types, and the Closet page
+    uploads/           Upload flow, image pipeline, and the IndexedDB store
     shuffle/           Shuffle logic + the Shuffle page
     outfits/           Saved-outfit model, storage, and the Outfits page
     theme/             Theme presets, persistence, and the picker
   lib/                 RNG and the quote pool
-  main.tsx             App entry + routing
+  main.tsx             Hydrates the closet, then mounts the app
+  app.tsx              Routing + mount
 ```
 
 The app is organized by **feature** rather than by file type — each folder under
@@ -76,25 +83,28 @@ The app is organized by **feature** rather than by file type — each folder und
 
 ## Adding clothes
 
-The wardrobe is a single data file: `src/features/closet/closet.ts`. To add an item:
+Everything comes in through the app — there is no checked-in wardrobe to edit.
+Open **closet → Add an item**, pick a photo, choose a category, and save. The
+pipeline (`src/features/uploads/pipeline/`) does the rest:
 
-1. Drop the PNG into `public/images/<category>/` (e.g. `public/images/tops/`).
-2. Add one entry to the matching category array in `closet.ts`:
-
-   ```ts
-   {
-     id: "top-shirt-7",
-     name: "Shirt 7",
-     category: "tops",
-     image: "/images/tops/shirt7.png",
-   }
-   ```
+1. **Detect** — inspects the alpha channel. An already-transparent PNG skips
+   straight to step 3.
+2. **Cut out** — an opaque photo goes through in-browser background removal in a
+   worker (the model is fetched on first use only).
+3. **Normalize** — trims to the garment's bounding box, scales it to the
+   per-category fill target, and composites it onto the standard 1080-wide
+   canvas, waist-anchored for bottoms. Bottoms get a 1080×2000 canvas when the
+   cutout looks full-length, with a toggle in the preview to override.
+4. **Save** — a PNG blob in IndexedDB, keyed by a UUID.
 
 Categories are `tops`, `bottoms`, `dresses`, `jackets`, `shoes`, and
 `accessories`. Everything downstream — shuffling, the rails, saved-outfit
-validation — reads from this one manifest, so no other file needs to change.
-Dresses work the same way: the code already handles them, so dropping in dress
-images plus their entries activates that part of the UI.
+validation — reads from the closet store, so nothing else needs to change. That
+includes dresses: uploading your first one activates the separates/dress toggle,
+the merged dress rail, and dresses in the shuffle pool.
+
+An outfit needs a base (a top **and** a bottom, or a dress) plus shoes. Until the
+closet holds that much, the shuffle page shows what's still missing instead.
 
 ## How shuffling works
 
@@ -107,18 +117,39 @@ driven by a seedable RNG (so the logic is fully testable). An outfit is:
 Optional slots include a "none" outcome, so not every outfit comes with a jacket
 or accessory — matching how you'd actually get dressed.
 
+Because every item is deletable, "the closet can't dress anyone" is an ordinary
+state rather than an error: `shuffleOutfit` returns `null`, and `missingForOutfit`
+says which categories are still empty. The shuffle store re-validates whenever the
+closet changes, so deleting your last pair of shoes drops you back to the empty
+state instead of throwing.
+
 ## Data & persistence
 
-Saved outfits and the selected theme live in the browser's `localStorage`. Storage
-goes through small interfaces (`OutfitStore`, theme read/write), so swapping to a
+Uploaded images live in **IndexedDB** (blobs are far too large for `localStorage`);
+saved outfits and the selected theme live in `localStorage`. Storage goes through
+small interfaces (`UploadStore`, `OutfitStore`, theme read/write), so swapping to a
 real backend later means writing one new implementation — the UI doesn't change.
-Stored outfits are also validated and repaired on load, so deleting an item from
-the closet never leaves a saved outfit showing a broken image.
+This also means the closet is per-browser: uploads on your phone won't appear on
+your laptop.
+
+Stored outfits are validated and repaired on load, so deleting an item from the
+closet never leaves a saved outfit showing a broken image — the card renders
+without the missing piece and says so.
+
+Because browser storage is per-origin and evictable, the closet page has **export
+backup** and **import backup**: one JSON file carrying every uploaded image plus
+every saved outfit. Import merges by id, so re-importing the same file adds
+nothing. This is the only way a closet moves between devices — or survives moving
+the app to a different domain, since `*.vercel.app` and a custom domain are
+separate origins with separate IndexedDB. After the first upload the app also
+calls `navigator.storage.persist()`, which asks the browser not to evict the
+closet automatically; it's insurance, not a guarantee, and refusal changes
+nothing.
 
 ## Tests
 
-48 unit tests across shuffle logic, the closet manifest, outfit storage, naming,
-theme persistence, and quotes:
+193 unit tests across shuffle logic, the closet store, the image pipeline, backup
+encoding, upload and outfit storage, naming, theme persistence, and quotes:
 
 ```bash
 npm test

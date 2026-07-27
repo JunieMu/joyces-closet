@@ -1,4 +1,4 @@
-import { getCloset, getItem } from "../closet/closet";
+import { useCloset, useClosetItem } from "../closet/closet";
 import { isOutfitValid } from "../shuffle/outfit";
 import type { SavedOutfit } from "./store";
 
@@ -32,7 +32,7 @@ function Thumbnail({
   id: string | null;
   className: string;
 }) {
-  const item = id === null ? undefined : getItem(id);
+  const item = useClosetItem(id);
   if (!item) return null;
 
   return (
@@ -87,7 +87,8 @@ function Preview({ saved }: { saved: SavedOutfit }) {
 }
 
 export function OutfitCard({ saved, onLoad, onDelete }: OutfitCardProps) {
-  const complete = isOutfitValid(saved.outfit, getCloset());
+  const closet = useCloset();
+  const complete = isOutfitValid(saved.outfit, closet);
   const created = new Date(saved.createdAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",

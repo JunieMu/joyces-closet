@@ -80,7 +80,7 @@ export function isOutfitValid(outfit: Outfit, closet: Closet): boolean {
  * dropped from the optional slots and substituted in the required ones. Returns null
  * only when the closet itself can't dress anyone (no shoes, or no base to build).
  *
- * This is what lets a saved outfit survive Joyce deleting an item from the manifest —
+ * This is what lets a saved outfit survive Joyce deleting an item from the closet —
  * the card still loads, minus whatever is gone.
  */
 export function repairOutfit(outfit: Outfit, closet: Closet): Outfit | null {

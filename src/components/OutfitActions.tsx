@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getCloset } from "../features/closet/closet";
+import { useCloset } from "../features/closet/closet";
 import { defaultOutfitName } from "../features/outfits/naming";
 import { useOutfitsStore } from "../features/outfits/useOutfitsStore";
 import { useShuffleStore } from "../features/shuffle/useShuffleStore";
@@ -27,7 +27,9 @@ const SECONDARY_PILL =
  * mobile bottom bar, so the canvas stays purely the outfit (Decisions 4, 5 & 10).
  */
 export function OutfitActions({ variant }: OutfitActionsProps) {
-  const closet = getCloset();
+  // Subscribed, not read inline: this is what makes the dress toggle appear the moment
+  // the first dress is uploaded, with no reload.
+  const closet = useCloset();
   const outfit = useShuffleStore((state) => state.outfit);
   const shuffleAll = useShuffleStore((state) => state.shuffleAll);
   const setBaseKind = useShuffleStore((state) => state.setBaseKind);
@@ -50,10 +52,15 @@ export function OutfitActions({ variant }: OutfitActionsProps) {
   };
 
   const handleSave = () => {
+    if (outfit === null) return;
     saveOutfit(name, outfit);
     setNaming(false);
     setJustSaved(true);
   };
+
+  // Nothing to shuffle or save until the closet can dress: the page itself is showing the
+  // "add your first piece" prompt, so an empty sidebar and bottom bar are the right backdrop.
+  if (outfit === null) return null;
 
   const { base } = outfit;
   const hasDresses = closet.dresses.length > 0;
@@ -72,7 +79,7 @@ export function OutfitActions({ variant }: OutfitActionsProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Dormant until the first dress lands in the manifest. */}
+      {/* Dormant until the first dress is uploaded. */}
       {hasDresses && (
         <div className="flex items-center gap-1">
           <button

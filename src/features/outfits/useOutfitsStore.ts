@@ -13,6 +13,8 @@ interface OutfitsState {
   saved: SavedOutfit[];
   saveOutfit: (name: string, outfit: Outfit) => void;
   deleteOutfit: (id: string) => void;
+  /** Restores outfits from a backup, keeping their ids. Returns how many were new. */
+  importOutfits: (outfits: SavedOutfit[]) => number;
 }
 
 /**
@@ -35,5 +37,18 @@ export const useOutfitsStore = create<OutfitsState>()((set) => ({
   deleteOutfit: (id) => {
     outfitStore.delete(id);
     set({ saved: outfitStore.list() });
+  },
+
+  // Ids are preserved rather than reminted (unlike saveOutfit) so that importing the same
+  // backup twice is a no-op instead of doubling the list. An outfit wearing an item the
+  // backup didn't carry needs no special handling — repairOutfit already covers it.
+  importOutfits: (outfits) => {
+    const existing = new Set(outfitStore.list().map((saved) => saved.id));
+    const fresh = outfits.filter((outfit) => !existing.has(outfit.id));
+
+    for (const outfit of fresh) outfitStore.save(outfit);
+    set({ saved: outfitStore.list() });
+
+    return fresh.length;
   },
 }));

@@ -8,9 +8,14 @@ import {
   repairOutfit,
   type Outfit,
 } from "./outfit";
-import { shuffleOutfit, shuffleSlot } from "./shuffle";
+import {
+  canDress,
+  missingForOutfit,
+  shuffleOutfit,
+  shuffleSlot,
+} from "./shuffle";
 
-// Fixture closets, not the real manifest — adding clothes must never churn these tests.
+// Fixture closets, so these tests describe the rules rather than anyone's actual wardrobe.
 function items(category: ItemCategory, count: number): ClosetItem[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `${category}-${i + 1}`,
@@ -194,7 +199,8 @@ describe("shuffleOutfit", () => {
     });
     const rng = seeded(1234);
     for (let i = 0; i < 500; i++) {
-      expect(isOutfitValid(shuffleOutfit(closet, rng), closet)).toBe(true);
+      const outfit = shuffleOutfit(closet, rng);
+      expect(outfit && isOutfitValid(outfit, closet)).toBe(true);
     }
   });
 
@@ -203,16 +209,73 @@ describe("shuffleOutfit", () => {
     const rng = seeded(99);
     for (let i = 0; i < 200; i++) {
       const outfit = shuffleOutfit(closet, rng);
-      expect(outfit.base.kind).toBe("separates");
-      expect(outfit.accessoryId).toBeNull(); // no accessories in this fixture
-      expect(isOutfitValid(outfit, closet)).toBe(true);
+      expect(outfit?.base.kind).toBe("separates");
+      expect(outfit?.accessoryId).toBeNull(); // no accessories in this fixture
+      expect(outfit && isOutfitValid(outfit, closet)).toBe(true);
     }
   });
 
-  it("throws rather than inventing an outfit from an empty closet", () => {
-    expect(() => shuffleOutfit(fixture({}), seeded(1))).toThrow(
-      /no wearable base/,
-    );
+  // Null rather than a throw: an upload-only closet is empty on a first visit, so this is
+  // an ordinary state the shuffle page renders, not an error.
+  it("returns null rather than inventing an outfit from an empty closet", () => {
+    const rng: Rng = () => {
+      throw new Error("rng must not be consumed when there is nothing to wear");
+    };
+
+    expect(shuffleOutfit(fixture({}), rng)).toBeNull();
+    expect(shuffleOutfit(fixture({ tops: 2, bottoms: 2 }), rng)).toBeNull(); // no shoes
+    expect(shuffleOutfit(fixture({ tops: 2, shoes: 1 }), rng)).toBeNull(); // no bottoms
+  });
+
+  it("can dress from a dress plus shoes alone", () => {
+    const closet = fixture({ dresses: 1, shoes: 1 });
+    const outfit = shuffleOutfit(closet, seeded(7));
+
+    expect(outfit?.base).toEqual({ kind: "dress", dressId: "dresses-1" });
+    expect(outfit && isOutfitValid(outfit, closet)).toBe(true);
+  });
+});
+
+describe("missingForOutfit", () => {
+  it("is empty when the closet can dress", () => {
+    const closet = fixture({ tops: 1, bottoms: 1, shoes: 1 });
+
+    expect(missingForOutfit(closet)).toEqual([]);
+    expect(canDress(closet)).toBe(true);
+  });
+
+  it("asks for everything when the closet is empty", () => {
+    expect(missingForOutfit(fixture({}))).toEqual(["tops", "bottoms", "shoes"]);
+  });
+
+  it("asks only for what is actually missing", () => {
+    expect(missingForOutfit(fixture({ tops: 3, bottoms: 2 }))).toEqual([
+      "shoes",
+    ]);
+    expect(missingForOutfit(fixture({ tops: 3, shoes: 1 }))).toEqual([
+      "bottoms",
+    ]);
+  });
+
+  // A dress fills the top and bottom slots at once, so it settles the base on its own.
+  it("does not ask for separates when a dress covers the base", () => {
+    expect(missingForOutfit(fixture({ dresses: 1, shoes: 1 }))).toEqual([]);
+    expect(missingForOutfit(fixture({ dresses: 1 }))).toEqual(["shoes"]);
+  });
+
+  it("agrees with canDress in every case", () => {
+    const closets = [
+      fixture({}),
+      fixture({ tops: 1 }),
+      fixture({ tops: 1, bottoms: 1 }),
+      fixture({ tops: 1, bottoms: 1, shoes: 1 }),
+      fixture({ dresses: 1, shoes: 1 }),
+      fixture({ jackets: 3, accessories: 2 }),
+    ];
+
+    for (const closet of closets) {
+      expect(canDress(closet)).toBe(missingForOutfit(closet).length === 0);
+    }
   });
 });
 

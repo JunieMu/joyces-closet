@@ -58,7 +58,42 @@ function shuffleBase(closet: Closet, rng: Rng): OutfitBase {
   return { kind: "dress", dressId: at(dresses, roll - combos).id };
 }
 
-export function shuffleOutfit(closet: Closet, rng: Rng): Outfit {
+/** The categories that must be filled before an outfit exists — what the empty state asks for. */
+export type MissingCategory = "tops" | "bottoms" | "shoes";
+
+/**
+ * What the closet still needs before a complete outfit can be built. Empty ⇒ it can dress.
+ *
+ * The closet is upload-only, so "not yet" is an ordinary state — a first visit, or deleting
+ * the last pair of shoes — not an error.
+ */
+export function missingForOutfit(closet: Closet): MissingCategory[] {
+  const missing: MissingCategory[] = [];
+
+  // A dress fills the top and bottom slots at once, so a closet with one needs neither.
+  const hasBase =
+    closet.tops.length * closet.bottoms.length + closet.dresses.length > 0;
+  if (!hasBase) {
+    if (closet.tops.length === 0) missing.push("tops");
+    if (closet.bottoms.length === 0) missing.push("bottoms");
+  }
+  if (closet.shoes.length === 0) missing.push("shoes");
+
+  return missing;
+}
+
+/**
+ * Whether a complete outfit can be built at all. Callers check this instead of catching; the
+ * throws above stay as internal invariant guards, unreachable once this has returned true.
+ */
+export function canDress(closet: Closet): boolean {
+  return missingForOutfit(closet).length === 0;
+}
+
+/** Null when the closet can't dress anyone — the same convention as `repairOutfit`. */
+export function shuffleOutfit(closet: Closet, rng: Rng): Outfit | null {
+  if (!canDress(closet)) return null;
+
   return {
     base: shuffleBase(closet, rng),
     jacketId: pickOptional(closet.jackets, rng)?.id ?? null,

@@ -44,6 +44,9 @@ export function Layout() {
           <NavLink to="/outfits" className={navLinkClass}>
             outfits
           </NavLink>
+          <NavLink to="/closet" className={navLinkClass}>
+            closet
+          </NavLink>
         </nav>
 
         <hr className="border-ink/10 my-6 w-full" />
@@ -78,6 +81,9 @@ export function Layout() {
           </NavLink>
           <NavLink to="/outfits" className={navLinkClass}>
             outfits
+          </NavLink>
+          <NavLink to="/closet" className={navLinkClass}>
+            closet
           </NavLink>
           <ThemePickerButton />
         </nav>

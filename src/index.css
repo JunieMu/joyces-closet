@@ -1,0 +1,379 @@
+@import "tailwindcss";
+
+@theme {
+  /* Semantic color roles (2026-07-17 Decision 5): every theme preset reassigns these.
+     Values here are the Rosewood default. Hairlines = border-ink/10, muted = text-ink/55. */
+  --color-paper: #faf6f0; /* app background */
+  --color-ink: #3d2e2e; /* text: deep espresso-plum */
+  --color-accent: #b05e5e; /* the single ACTION color (buttons, links, active nav, focus) */
+  --color-wash: #f3e2e0; /* soft fill / hover tint */
+
+  /* Category tints (Decision 2): informational, heavily muted watercolor tones. */
+  --color-tint-tops: #cf8d8d;
+  --color-tint-bottoms: #9aa47f;
+  --color-tint-dresses: #ab8fc0;
+  --color-tint-jackets: #c9a06a;
+  --color-tint-shoes: #bd7f63;
+  --color-tint-accessories: #83a8a3;
+
+  /* Aura wash colors (Decision 7): mid-toned — they read through heavy blur + opacity. */
+  --color-aura-1: #e8b3a6;
+  --color-aura-2: #e3cf9e;
+  --color-aura-3: #b8cbb2;
+
+  --font-display: "Fraunces", serif;
+  --font-body: "Work Sans", sans-serif;
+
+  /* Item entering a rail (arrow step, per-rail shuffle, and the Shuffle All cascade). */
+  --animate-rail-in: rail-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Save popover entrance. */
+  --animate-pop-in: pop-in 0.18s ease-out both;
+
+  /* Soft painterly lift for outfit cards on hover (usable as hover:shadow-painterly). */
+  --shadow-painterly:
+    0 10px 24px -10px color-mix(in srgb, var(--color-ink) 22%, transparent),
+    0 3px 10px -2px color-mix(in srgb, var(--color-accent) 10%, transparent);
+
+  @keyframes rail-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
+/* ---- Theme presets (Decision 5) ------------------------------------------------
+   Each block is a COMPLETE token set. These are unlayered, so they beat the
+   @layer theme defaults. data-theme lives on <html> (set pre-paint in index.html);
+   it also works on any element — the picker dots use that to swatch themselves.
+   Rosewood duplicates the @theme defaults on purpose: without its own block, a
+   rosewood picker dot rendered under another active theme would inherit that
+   theme's colors. */
+
+[data-theme="rosewood"] {
+  --color-paper: #faf6f0;
+  --color-ink: #3d2e2e;
+  --color-accent: #b05e5e;
+  --color-wash: #f3e2e0;
+  --color-tint-tops: #cf8d8d;
+  --color-tint-bottoms: #9aa47f;
+  --color-tint-dresses: #ab8fc0;
+  --color-tint-jackets: #c9a06a;
+  --color-tint-shoes: #bd7f63;
+  --color-tint-accessories: #83a8a3;
+  --color-aura-1: #e8b3a6;
+  --color-aura-2: #e3cf9e;
+  --color-aura-3: #b8cbb2;
+}
+
+[data-theme="lavender"] {
+  /* Lavender Dusk: pale lilac paper, plum ink, wisteria accent. */
+  --color-paper: #f8f5fb;
+  --color-ink: #443649;
+  --color-accent: #8d76ae;
+  --color-wash: #ebe3f3;
+  --color-tint-tops: #c08fa8;
+  --color-tint-bottoms: #8f9dbb;
+  --color-tint-dresses: #a48bc4;
+  --color-tint-jackets: #b39a6f;
+  --color-tint-shoes: #a3799a;
+  --color-tint-accessories: #7fa5ad;
+  --color-aura-1: #cdb8e3;
+  --color-aura-2: #b3bfe0;
+  --color-aura-3: #e3b8cf;
+}
+
+[data-theme="garden"] {
+  /* Garden: warm cream, moss accent, botanical tints. */
+  --color-paper: #faf7ec;
+  --color-ink: #3c3a2c;
+  --color-accent: #7d8f5c;
+  --color-wash: #e8ecd8;
+  --color-tint-tops: #c98f8f;
+  --color-tint-bottoms: #8ba173;
+  --color-tint-dresses: #ab8fb8;
+  --color-tint-jackets: #c1a05e;
+  --color-tint-shoes: #a97e5f;
+  --color-tint-accessories: #77a08e;
+  --color-aura-1: #bcd0a8;
+  --color-aura-2: #e8d4a4;
+  --color-aura-3: #a8c4bc;
+}
+
+[data-theme="seaglass"] {
+  /* Sea Glass: cool off-white, dusty teal accent — the one cool preset. */
+  --color-paper: #f4f7f6;
+  --color-ink: #31423f;
+  --color-accent: #58908a;
+  --color-wash: #ddeae7;
+  --color-tint-tops: #8fa9b8;
+  --color-tint-bottoms: #7fa596;
+  --color-tint-dresses: #9d92bb;
+  --color-tint-jackets: #b8a37e;
+  --color-tint-shoes: #ad8577;
+  --color-tint-accessories: #6f9faa;
+  --color-aura-1: #a8cec6;
+  --color-aura-2: #b0c4dc;
+  --color-aura-3: #cfe0d0;
+}
+
+[data-theme="marmalade"] {
+  /* Marmalade: apricot-cream paper, terracotta accent. */
+  --color-paper: #fcf4e9;
+  --color-ink: #47332a;
+  --color-accent: #bf7048;
+  --color-wash: #f7e3d0;
+  --color-tint-tops: #ce8d72;
+  --color-tint-bottoms: #a89a5f;
+  --color-tint-dresses: #c48ba4;
+  --color-tint-jackets: #b98a4e;
+  --color-tint-shoes: #a76b52;
+  --color-tint-accessories: #8aa08c;
+  --color-aura-1: #ecc0a0;
+  --color-aura-2: #e8d3a0;
+  --color-aura-3: #d9b8ac;
+}
+
+/* A soft-edged paint dab; color comes from currentColor so any text-* utility tints it
+   (theme picker dots here, rail category dots in the texture pass). */
+.watercolor-dot {
+  border-radius: 9999px;
+  background:
+    radial-gradient(
+      circle at 32% 30%,
+      color-mix(in srgb, currentColor 55%, white 45%) 0%,
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 55% 60%,
+      currentColor 0%,
+      color-mix(in srgb, currentColor 78%, transparent) 62%,
+      transparent 78%
+    );
+}
+
+:root {
+  /* The sketchbook tooth (Decision 7): one shared feTurbulence tile — a data URI is
+     code, not an asset (Decision 3). Tune the rect opacity to taste; it is the single
+     knob for grain strength everywhere. */
+  --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-paper);
+  background-image: var(
+    --texture-grain
+  ); /* the sketchbook page, behind all content */
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* The global 0.01ms clamp would leave `infinite alternate` looping frantically, so kill
+     the aura animations outright: bloom's `both` fill is skipped and blobs rest at 0.6. */
+  .aura,
+  .aura > div {
+    animation: none;
+  }
+}
+
+/* Paper-doll canvas (Decision 6): mobile = paired rows, desktop = 3-col body composition. */
+.paper-doll {
+  display: grid;
+  grid-template-areas:
+    "jacket top"
+    "bottom bottom"
+    "shoes accessory";
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.75rem;
+  row-gap: 1.5rem;
+  align-items: end;
+}
+
+@media (min-width: 768px) {
+  .paper-doll {
+    grid-template-areas:
+      "jacket top accessory"
+      ". bottom shoes";
+    /* The jacket column matches the centre so square jackets render at the same scale as
+       tops once the rail arrows take their share; the small-slot column can stay leaner. */
+    grid-template-columns: 1.15fr 1.15fr 1fr;
+    column-gap: 1rem;
+  }
+}
+
+/* ---- Sketchbook texture (Decision 7) ------------------------------------------- */
+
+/* Empty "none" slots: the dashed border becomes a hand-drawn wobble. The border lives on
+   a pseudo-element so the filter never distorts the label text. */
+.sketchy-slot {
+  position: relative;
+}
+.sketchy-slot::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1.5px dashed color-mix(in srgb, var(--color-ink) 30%, transparent);
+  border-radius: 1rem;
+  filter: url(#sketchy);
+  pointer-events: none;
+}
+
+/* The sidebar quote sits on a faint watercolor blob. */
+.quote-wash {
+  position: relative;
+  isolation: isolate;
+}
+.quote-wash::before {
+  content: "";
+  position: absolute;
+  inset: -1rem -0.75rem;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at 30% 25%,
+    color-mix(in srgb, var(--color-aura-1) 45%, transparent),
+    transparent 70%
+  );
+  filter: blur(6px);
+}
+
+/* Outfit cards: paper tooth + a soft category-tint wash bleeding down from the top edge.
+   Which tint a card gets is stable per card (set via a wash-* class). */
+.paper-card {
+  background-image: var(--texture-grain);
+  background-size: 240px;
+}
+.wash-tops {
+  --card-wash: var(--color-tint-tops);
+}
+.wash-bottoms {
+  --card-wash: var(--color-tint-bottoms);
+}
+.wash-dresses {
+  --card-wash: var(--color-tint-dresses);
+}
+.wash-jackets {
+  --card-wash: var(--color-tint-jackets);
+}
+.wash-shoes {
+  --card-wash: var(--color-tint-shoes);
+}
+.wash-accessories {
+  --card-wash: var(--color-tint-accessories);
+}
+.card-wash::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2.75rem;
+  border-radius: 1rem 1rem 0 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--card-wash) 30%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Primary button: subtle painterly texture on hover only (Decision 7). */
+.btn-painterly {
+  position: relative;
+  overflow: hidden;
+}
+.btn-painterly::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--texture-grain);
+  mix-blend-mode: overlay;
+  opacity: 0;
+  transition: opacity 150ms;
+  pointer-events: none;
+}
+.btn-painterly:hover::after {
+  opacity: 1;
+}
+
+/* ---- The aura (Decision 7) ------------------------------------------------------
+   The stage light: one soft watercolor aura behind the paper doll — the app's ONLY
+   ambient motion. Blobs animate transform/opacity only; the blur is static. */
+.aura {
+  position: absolute;
+  inset: -3rem -1rem;
+  z-index: -1;
+  pointer-events: none;
+  animation: aura-bloom 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.aura > div {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(56px);
+  opacity: 0.6; /* resting value — also the reduced-motion static state */
+}
+.aura-blob-1 {
+  top: 0;
+  left: 12%;
+  width: 55%;
+  height: 48%;
+  background: radial-gradient(circle, var(--color-aura-1), transparent 70%);
+  animation: aura-breathe 19s ease-in-out infinite alternate;
+}
+.aura-blob-2 {
+  top: 25%;
+  right: 5%;
+  width: 50%;
+  height: 55%;
+  background: radial-gradient(circle, var(--color-aura-2), transparent 70%);
+  animation: aura-breathe 23s ease-in-out -7s infinite alternate;
+}
+.aura-blob-3 {
+  bottom: 0;
+  left: 25%;
+  width: 55%;
+  height: 45%;
+  background: radial-gradient(circle, var(--color-aura-3), transparent 70%);
+  animation: aura-breathe 27s ease-in-out -13s infinite alternate;
+}
+
+@keyframes aura-breathe {
+  from {
+    opacity: 0.5;
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    opacity: 0.75;
+    transform: scale(1.08) translate(2%, -2%);
+  }
+}
+@keyframes aura-bloom {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

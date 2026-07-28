@@ -226,21 +226,6 @@ body {
 
 /* ---- Sketchbook texture (Decision 7) ------------------------------------------- */
 
-/* Empty "none" slots: the dashed border becomes a hand-drawn wobble. The border lives on
-   a pseudo-element so the filter never distorts the label text. */
-.sketchy-slot {
-  position: relative;
-}
-.sketchy-slot::before {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border: 1.5px dashed color-mix(in srgb, var(--color-ink) 30%, transparent);
-  border-radius: 1rem;
-  filter: url(#sketchy);
-  pointer-events: none;
-}
-
 /* The sidebar quote sits on a faint watercolor blob. */
 .quote-wash {
   position: relative;

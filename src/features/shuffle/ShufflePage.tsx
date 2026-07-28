@@ -157,6 +157,7 @@ export function ShufflePage() {
               items={closet.jackets}
               activeId={outfit.jacketId}
               allowNone
+              emptyLabel="no jacket"
               onChange={(id) => setSlot("jacket", id)}
               onShuffle={() => shuffleSlot("jacket")}
               className={RAIL_FRAME.jackets}
@@ -207,6 +208,7 @@ export function ShufflePage() {
               items={closet.accessories}
               activeId={outfit.accessoryId}
               allowNone
+              emptyLabel="no accessory"
               onChange={(id) => setSlot("accessory", id)}
               onShuffle={() => shuffleSlot("accessory")}
               className={RAIL_FRAME.accessories}

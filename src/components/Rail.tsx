@@ -7,6 +7,7 @@ interface RailProps {
   items: ClosetItem[];
   activeId: string | null; // null = the "none" position
   allowNone: boolean; // jacket / accessory rails
+  emptyLabel?: string; // copy for the "none" position — singular, since it names an outfit slot
   onChange: (id: string | null) => void;
   onShuffle: () => void; // per-slot shuffle
   className?: string; // per-slot sizing of the image frame
@@ -51,6 +52,7 @@ export function Rail({
   items,
   activeId,
   allowNone,
+  emptyLabel,
   onChange,
   onShuffle,
   className = "h-40",
@@ -158,8 +160,11 @@ export function Rail({
                 className={`max-h-full object-contain select-none ${imageClassName}`}
               />
             ) : (
-              <div className="sketchy-slot text-ink/40 font-body flex h-full w-full items-center justify-center rounded-2xl text-xs">
-                No {label.toLowerCase()}
+              // No frame around the empty position: an outlined box read as heavier than the
+              // garment it stands in for, and its straight edges invited comparison to a true
+              // rectangle. The paper holds the space instead.
+              <div className="font-display text-ink/35 flex h-full w-full items-center justify-center text-sm italic">
+                {emptyLabel ?? `no ${label.toLowerCase()}`}
               </div>
             )}
           </div>

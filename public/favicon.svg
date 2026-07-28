@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- A rosewood hanger on a paper tile. The tile carries its own ground so the mark
+       stays legible against both light and dark browser chrome. Rounded to match the
+       app's rounded-2xl surfaces; stroke is chunky on purpose so it survives 16px. -->
+  <rect width="32" height="32" rx="7.5" fill="#faf6f0" />
+  <g
+    fill="none"
+    stroke="#b05e5e"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M16 15 6.5 24h19Z" />
+    <path d="M16 15v-3a2.5 2.5 0 1 0-2.5-2.5" />
+  </g>
+</svg>

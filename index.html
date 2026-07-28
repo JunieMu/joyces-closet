@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Joyce's Closet</title>
 
+    <!-- SVG is what modern browsers actually render in the tab; the PNG is the fallback
+         for anything that can't. Without these the browser requests /favicon.ico, which
+         vercel.json rewrites to index.html — HTML the browser can't decode as an image,
+         hence the grey globe. -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#faf6f0" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

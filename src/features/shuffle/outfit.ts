@@ -76,6 +76,25 @@ export function isOutfitValid(outfit: Outfit, closet: Closet): boolean {
 }
 
 /**
+ * Whether an outfit wears a particular closet item. Deleting from the closet is the one
+ * irreversible action in the app, so the confirmation says how many saved outfits it will
+ * leave with a hole in them (2026-07-30 Decision 4).
+ */
+export function outfitUsesItem(outfit: Outfit, id: string): boolean {
+  const baseUses =
+    outfit.base.kind === "separates"
+      ? outfit.base.topId === id || outfit.base.bottomId === id
+      : outfit.base.dressId === id;
+
+  return (
+    baseUses ||
+    outfit.shoesId === id ||
+    outfit.jacketId === id ||
+    outfit.accessoryId === id
+  );
+}
+
+/**
  * Makes a stored outfit wearable against today's closet: ids that no longer exist are
  * dropped from the optional slots and substituted in the required ones. Returns null
  * only when the closet itself can't dress anyone (no shoes, or no base to build).

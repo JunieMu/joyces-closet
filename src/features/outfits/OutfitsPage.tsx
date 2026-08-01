@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
+import { Aura } from "../../components/Aura";
+import { Ribbon } from "../../components/Ribbon";
 import { getCloset } from "../closet/closet";
 import { repairOutfit } from "../shuffle/outfit";
 import { useShuffleStore } from "../shuffle/useShuffleStore";
@@ -12,6 +15,10 @@ export function OutfitsPage() {
   const saved = useOutfitsStore((state) => state.saved);
   const deleteOutfit = useOutfitsStore((state) => state.deleteOutfit);
   const loadOutfit = useShuffleStore((state) => state.loadOutfit);
+  // One id means the one-at-a-time rule (Decision 6) falls out for free. The handover across
+  // cards works because useDismiss listens on pointerdown: card A's dismissal nulls the id,
+  // THEN card B's click sets it to B.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const newestFirst = [...saved].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),
@@ -26,15 +33,24 @@ export function OutfitsPage() {
     void navigate("/");
   };
 
+  // The confirmation now lives on the card (2026-07-30 Decision 3), so this just deletes.
   const handleDelete = (outfit: SavedOutfit) => {
-    if (window.confirm(`Delete "${outfit.name}"?`)) deleteOutfit(outfit.id);
+    deleteOutfit(outfit.id);
+    setConfirmingId(null);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-ink text-center text-4xl font-medium sm:text-5xl">
-        saved outfits
-      </h1>
+      {/* Fixed to the viewport, so scrolling a long grid pans across it (page-auras
+          Decision 9). Absolutely positioned, so it is not a flex item and adds no gap. */}
+      <Aura variant="gallery" />
+
+      <header className="flex flex-col items-center gap-3 text-center">
+        <h1 className="font-display text-ink text-4xl font-medium sm:text-5xl">
+          saved outfits
+        </h1>
+        <Ribbon variant="stripe" className="h-6 w-44 sm:h-7 sm:w-52" />
+      </header>
 
       {newestFirst.length === 0 ? (
         <div className="font-body text-ink/60 flex flex-col items-center gap-3 py-10 text-center">
@@ -52,8 +68,11 @@ export function OutfitsPage() {
             <OutfitCard
               key={outfit.id}
               saved={outfit}
+              confirming={confirmingId === outfit.id}
               onLoad={() => handleLoad(outfit)}
               onDelete={() => handleDelete(outfit)}
+              onRequestConfirm={() => setConfirmingId(outfit.id)}
+              onCancelConfirm={() => setConfirmingId(null)}
             />
           ))}
         </div>

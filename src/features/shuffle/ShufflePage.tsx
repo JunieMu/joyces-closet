@@ -1,9 +1,12 @@
 import { Link } from "react-router";
 
+import { Aura } from "../../components/Aura";
 import { Rail } from "../../components/Rail";
+import { Ribbon } from "../../components/Ribbon";
 import { useCascade } from "../../components/useCascade";
 import { useCloset } from "../closet/closet";
 import { RAIL_FRAME, RAIL_IMAGE_WIDTH } from "../closet/railScale";
+import { TodayPlan } from "../week/TodayPlan";
 import { missingForOutfit, type MissingCategory } from "./shuffle";
 import { useShuffleStore } from "./useShuffleStore";
 
@@ -36,7 +39,11 @@ function listMissing(missing: MissingCategory[]): string {
  */
 function NothingToWear({ missing }: { missing: MissingCategory[] }) {
   return (
-    <div className="flex flex-col items-center gap-5 py-20 text-center">
+    // Same `relative isolate` canvas as the shuffle page proper — this early return is why the
+    // app's first screen had no aura at all (page-auras Decision 11). Unconditional: an aura
+    // is a property of the page, not of its data.
+    <div className="relative isolate flex flex-col items-center gap-5 py-20 text-center">
+      <Aura variant="stage" />
       <h1 className="font-display text-ink text-3xl font-medium sm:text-4xl">
         your closet is waiting
       </h1>
@@ -72,31 +79,12 @@ export function ShufflePage() {
         <h1 className="font-display text-ink text-4xl font-medium sm:text-5xl">
           what am i wearing today?
         </h1>
-        {/* Two overlapping strokes read as layered watercolor passes; the sketchy filter
-            roughs the edges. Paints in the active theme's accent. */}
-        <svg
-          viewBox="0 0 220 12"
-          aria-hidden="true"
-          className="text-accent mx-auto mt-3 h-3 w-44 sm:w-52"
-          style={{ filter: "url(#sketchy)" }}
-        >
-          <path
-            d="M4 8 C 45 3, 120 2, 216 6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            opacity="0.55"
-          />
-          <path
-            d="M8 9.5 C 60 5.5, 140 4.5, 212 8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity="0.35"
-          />
-        </svg>
+        {/* The plaid ribbon with its lace trim — the hero of the ribbon family (Decision 3),
+            and what replaced the filter-roughed paint stroke that pixelated on retina. */}
+        <Ribbon
+          variant="plaid"
+          className="mx-auto mt-3 h-7 w-48 sm:h-8 sm:w-56"
+        />
         <p className="font-body text-ink/55 mt-2 text-sm">
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
@@ -104,21 +92,23 @@ export function ShufflePage() {
             day: "numeric",
           })}
         </p>
+
+        {/* Never reached when the closet can't dress anyone — the early return above fires
+            first — which is fine: repairOutfit would have nothing to build against anyway. */}
+        <TodayPlan />
       </header>
 
       {/* `isolate` keeps the z-index:-1 aura inside this stacking context — behind the rails
           but above the page background. */}
       <div className="relative isolate w-full">
         {/* Re-blooms on Shuffle All: the tick remounts the aura, replaying aura-bloom. */}
-        <div key={tick} className="aura" aria-hidden="true">
-          <div className="aura-blob-1" />
-          <div className="aura-blob-2" />
-          <div className="aura-blob-3" />
-        </div>
+        <Aura key={tick} variant="stage" />
 
         <div className="paper-doll w-full">
+          {/* Distinct keys, so the flip tears the rail down instead of reusing the instance:
+              a rail that appears has no predecessor to slide from, and rises in (Decision 2). */}
           {base.kind === "separates" ? (
-            <div className="[grid-area:top]">
+            <div key="top" className="[grid-area:top]">
               <Rail
                 label="Tops"
                 items={closet.tops}
@@ -129,12 +119,15 @@ export function ShufflePage() {
                 className={RAIL_FRAME.tops}
                 cascadeTick={tick}
                 cascadeDelayMs={CASCADE_MS.top}
-                tintClass="text-tint-tops"
+                category="tops"
               />
             </div>
           ) : (
             // A dress fills the top and bottom slots at once, so the two rails merge into one.
-            <div className="[grid-area:top] md:[grid-row:top-start_/_bottom-end]">
+            <div
+              key="dress"
+              className="[grid-area:top] md:[grid-row:top-start_/_bottom-end]"
+            >
               <Rail
                 label="Dresses"
                 items={closet.dresses}
@@ -145,7 +138,7 @@ export function ShufflePage() {
                 className={RAIL_FRAME.dresses}
                 cascadeTick={tick}
                 cascadeDelayMs={CASCADE_MS.top}
-                tintClass="text-tint-dresses"
+                category="dresses"
               />
             </div>
           )}
@@ -163,7 +156,7 @@ export function ShufflePage() {
               className={RAIL_FRAME.jackets}
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.jacket}
-              tintClass="text-tint-jackets"
+              category="jackets"
             />
           </div>
 
@@ -181,7 +174,7 @@ export function ShufflePage() {
                 align="top"
                 cascadeTick={tick}
                 cascadeDelayMs={CASCADE_MS.bottom}
-                tintClass="text-tint-bottoms"
+                category="bottoms"
               />
             </div>
           )}
@@ -198,7 +191,7 @@ export function ShufflePage() {
               className={RAIL_FRAME.shoes}
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.shoes}
-              tintClass="text-tint-shoes"
+              category="shoes"
             />
           </div>
 
@@ -214,7 +207,7 @@ export function ShufflePage() {
               className={RAIL_FRAME.accessories}
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.accessory}
-              tintClass="text-tint-accessories"
+              category="accessories"
             />
           </div>
         </div>

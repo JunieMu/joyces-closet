@@ -12,27 +12,23 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export function Layout() {
-  const isToday = useLocation().pathname === "/";
+  const { pathname } = useLocation();
+  const isToday = pathname === "/";
+  // The one page whose content is seven things side by side rather than a column of them:
+  // max-w-5xl holds a 1440px screen to 944px, which the week spends on gutters it has no use
+  // for. Emitting one max-width or the other, never both, keeps this out of Tailwind's
+  // source-order lottery.
+  const isWeek = pathname === "/week";
   const quote = quoteOfTheDay();
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[17rem_1fr]">
-      {/* Filter defs for the hand-drawn line treatment (Decision 7) — referenced by CSS
-          as filter: url(#sketchy). */}
-      <svg aria-hidden="true" className="absolute h-0 w-0">
-        <filter id="sketchy">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.05"
-            numOctaves="2"
-            seed="7"
-          />
-          <feDisplacementMap in="SourceGraphic" scale="3" />
-        </filter>
-      </svg>
-
-      {/* Desktop sidebar: brand → nav → actions (Today only) → quote footer (Decision 4). */}
-      <aside className="border-ink/10 sticky top-0 hidden h-screen flex-col border-r px-6 py-8 md:flex">
+      {/* Desktop sidebar: brand → nav → actions (Today only) → quote footer (Decision 4).
+          `sticky` makes this a stacking context, which traps the save popover's own z-20 inside
+          it — so the z-index that lifts the popover over the shuffle canvas has to live HERE, on
+          the context itself. Without it the canvas (`relative isolate`, later in DOM order) paints
+          over the popover and swallows the clicks meant for Save. */}
+      <aside className="border-ink/10 sticky top-0 z-30 hidden h-screen flex-col border-r px-6 py-8 md:flex">
         <NavLink to="/" className="font-display text-ink text-2xl">
           joyce&apos;s closet
         </NavLink>
@@ -40,6 +36,9 @@ export function Layout() {
         <nav className="mt-8 flex flex-col items-start gap-1">
           <NavLink to="/" end className={navLinkClass}>
             today
+          </NavLink>
+          <NavLink to="/week" className={navLinkClass}>
+            week
           </NavLink>
           <NavLink to="/outfits" className={navLinkClass}>
             outfits
@@ -79,6 +78,9 @@ export function Layout() {
           <NavLink to="/" end className={navLinkClass}>
             today
           </NavLink>
+          <NavLink to="/week" className={navLinkClass}>
+            week
+          </NavLink>
           <NavLink to="/outfits" className={navLinkClass}>
             outfits
           </NavLink>
@@ -90,9 +92,9 @@ export function Layout() {
       </header>
 
       <main
-        className={`mx-auto w-full max-w-5xl px-4 py-8 md:px-10 ${
-          isToday ? "pb-32 md:pb-8" : ""
-        }`}
+        className={`mx-auto w-full px-4 py-8 md:px-10 ${
+          isWeek ? "max-w-7xl" : "max-w-5xl"
+        } ${isToday ? "pb-32 md:pb-8" : ""}`}
       >
         <Outlet />
       </main>

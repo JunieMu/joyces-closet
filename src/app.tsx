@@ -6,6 +6,7 @@ import { Layout } from "./components/Layout";
 import { ClosetPage } from "./features/closet/ClosetPage";
 import { OutfitsPage } from "./features/outfits/OutfitsPage";
 import { ShufflePage } from "./features/shuffle/ShufflePage";
+import { WeekPage } from "./features/week/WeekPage";
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,8 @@ const router = createBrowserRouter([
     Component: Layout,
     children: [
       { index: true, Component: ShufflePage },
+      // Route order mirrors nav order, which is temporal: today, then the week ahead.
+      { path: "week", Component: WeekPage },
       { path: "outfits", Component: OutfitsPage },
       { path: "closet", Component: ClosetPage },
     ],

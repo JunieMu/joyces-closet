@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
+import { CategoryShape } from "../../components/CategoryShape";
 import {
   CATEGORIES,
   CATEGORY_LABEL,
-  CATEGORY_TINT,
   RAIL_ALIGN,
   RAIL_FRAME,
   RAIL_IMAGE_WIDTH,
@@ -282,10 +282,7 @@ export function UploadFlow({ onDone }: { onDone: () => void }) {
                 onClick={() => handleCategory(option)}
                 className={`${choiceClass(category === option)} flex items-center gap-2`}
               >
-                <span
-                  aria-hidden="true"
-                  className={`watercolor-dot h-2 w-2 shrink-0 ${CATEGORY_TINT[option]}`}
-                />
+                <CategoryShape category={option} />
                 {CATEGORY_LABEL[option]}
               </button>
             ))}

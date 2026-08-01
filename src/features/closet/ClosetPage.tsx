@@ -1,9 +1,17 @@
 import { useRef, useState } from "react";
 
+import { Aura } from "../../components/Aura";
+import { CategoryShape } from "../../components/CategoryShape";
+import { ConfirmDelete } from "../../components/ConfirmDelete";
+import { Ribbon } from "../../components/Ribbon";
+import { RunningStitch } from "../../components/RunningStitch";
+import { useDismiss } from "../../components/useDismiss";
+import { useOutfitsStore } from "../outfits/useOutfitsStore";
+import { outfitUsesItem } from "../shuffle/outfit";
 import { exportBackup, importBackup } from "../uploads/backupFile";
 import { UploadFlow } from "../uploads/UploadFlow";
 import { useCloset } from "./closet";
-import { CATEGORIES, CATEGORY_LABEL, CATEGORY_TINT } from "./railScale";
+import { CATEGORIES, CATEGORY_LABEL } from "./railScale";
 import type { ClosetItem } from "./types";
 import { useClosetStore } from "./useClosetStore";
 
@@ -16,25 +24,72 @@ const QUIET_PILL =
   "text-xs transition hover:bg-wash/60 hover:text-accent active:scale-[0.98] " +
   "disabled:cursor-default disabled:opacity-50";
 
-/** Every item in the closet was uploaded, so every tile is renameable and deletable. */
-function Tile({ item }: { item: ClosetItem }) {
-  const removeUpload = useClosetStore((state) => state.removeUpload);
-  const renameUpload = useClosetStore((state) => state.renameUpload);
-  const [draft, setDraft] = useState(item.name);
+interface TileProps {
+  item: ClosetItem;
+  confirming: boolean;
+  onDelete: () => void;
+  onRequestConfirm: () => void;
+  onCancelConfirm: () => void;
+}
 
-  const handleDelete = () => {
-    if (window.confirm(`Delete "${item.name}"?`)) void removeUpload(item.id);
+/** Every item in the closet was uploaded, so every tile is renameable and deletable. */
+function Tile({
+  item,
+  confirming,
+  onDelete,
+  onRequestConfirm,
+  onCancelConfirm,
+}: TileProps) {
+  const renameUpload = useClosetStore((state) => state.renameUpload);
+  const saved = useOutfitsStore((state) => state.saved);
+  const tileRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [draft, setDraft] = useState(item.name);
+  const [leaving, setLeaving] = useState(false);
+  // See OutfitCard: keeps the layer mounted just long enough to fade out.
+  const [closing, setClosing] = useState(false);
+
+  // This delete is irreversible — the blob goes and the object URL is revoked — so the
+  // confirmation says what it will cost (Decision 4). Subscribing every tile to `saved` is free
+  // in practice: an outfit cannot be saved from this page, so the list never changes under it.
+  const wornIn = saved.filter((entry) =>
+    outfitUsesItem(entry.outfit, item.id),
+  ).length;
+
+  const cancel = () => {
+    onCancelConfirm();
+    setClosing(true);
+    triggerRef.current?.focus();
+  };
+
+  // Same reasoning as OutfitCard: the region is the whole tile so the × can toggle, and
+  // dismissal switches off once the delete is committed.
+  useDismiss(tileRef, confirming && !leaving ? cancel : null);
+
+  const handleAnimationEnd = (event: React.AnimationEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (leaving) onDelete();
   };
 
   return (
-    <div className="group border-ink/10 paper-card relative flex flex-col rounded-2xl border bg-white p-2 shadow-sm transition">
+    <div
+      ref={tileRef}
+      onAnimationEnd={handleAnimationEnd}
+      className={`group border-ink/10 paper-card relative flex flex-col rounded-2xl border bg-white p-2 shadow-sm transition ${
+        leaving ? "animate-card-leave" : ""
+      }`}
+    >
       {/* Ghost delete, mirroring OutfitCard.tsx:103-110: hidden until hover on a
-          mouse-driven desktop, always visible on a touch screen where there is no hover. */}
+          mouse-driven desktop, always visible on a touch screen where there is no hover.
+          While confirming it becomes the close button — it is painted above the confirm
+          layer, so leaving it inert would read as broken. */}
       <button
+        ref={triggerRef}
         type="button"
-        onClick={handleDelete}
+        onClick={confirming ? cancel : onRequestConfirm}
         aria-label={`Delete ${item.name}`}
-        className="text-ink/35 hover:bg-wash/60 hover:text-accent absolute top-1 right-1 z-10 h-6 w-6 cursor-pointer rounded-full text-base leading-none transition md:pointer-fine:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+        aria-expanded={confirming}
+        className="text-ink/35 hover:bg-wash/60 hover:text-accent absolute top-1 right-1 z-10 h-6 w-6 cursor-pointer rounded-full text-base leading-none transition md:pointer-fine:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 md:focus-visible:opacity-100"
       >
         ×
       </button>
@@ -53,9 +108,13 @@ function Tile({ item }: { item: ClosetItem }) {
         />
       </div>
 
+      {/* The rename field keeps its own Escape handler, so it is pulled out of the tab order
+          while confirming rather than disabled: the two Escapes must never both be live, and a
+          disabled input would grey out visibly through the ghosted tile. */}
       <input
         value={draft}
         aria-label={`Rename ${item.name}`}
+        tabIndex={confirming ? -1 : undefined}
         onChange={(event) => setDraft(event.target.value)}
         // Committed on blur or Enter rather than per keystroke, so renaming is one
         // IndexedDB write instead of one per letter. A name emptied to whitespace is
@@ -77,6 +136,26 @@ function Tile({ item }: { item: ClosetItem }) {
         }}
         className="font-body text-ink focus:border-accent mt-auto w-full shrink-0 truncate rounded border border-transparent bg-transparent pt-1 text-xs outline-none"
       />
+
+      {/* The short question throughout: tiles run ~110px on a phone at grid-cols-3 up to ~160px
+          at lg:grid-cols-6, and "remove this from the closet?" wraps to three lines even at the
+          wide end. The full wording stays in the decisions doc for any roomier surface. */}
+      {(confirming || closing) && (
+        <ConfirmDelete
+          compact
+          question="remove?"
+          closing={!confirming}
+          onClosed={() => setClosing(false)}
+          note={
+            wornIn > 0
+              ? `worn in ${wornIn} ${wornIn === 1 ? "outfit" : "outfits"}`
+              : undefined
+          }
+          confirmLabel="remove"
+          onConfirm={() => setLeaving(true)}
+          onCancel={cancel}
+        />
+      )}
     </div>
   );
 }
@@ -124,6 +203,10 @@ function BackupControls({ hasItems }: { hasItems: boolean }) {
       ];
       if (result.outfitsAdded > 0)
         parts.push(`${result.outfitsAdded} saved outfits`);
+      if (result.plansAdded > 0)
+        parts.push(
+          `${result.plansAdded} planned ${result.plansAdded === 1 ? "day" : "days"}`,
+        );
       if (result.itemsAlreadyPresent > 0)
         parts.push(`${result.itemsAlreadyPresent} already here`);
       if (result.skipped > 0) parts.push(`${result.skipped} unreadable`);
@@ -176,16 +259,33 @@ function BackupControls({ hasItems }: { hasItems: boolean }) {
 
 export function ClosetPage() {
   const closet = useCloset();
+  const removeUpload = useClosetStore((state) => state.removeUpload);
   const [adding, setAdding] = useState(false);
+  // A single id here covers all six category sections, so one-at-a-time holds across
+  // categories, not just within one.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const total = Object.values(closet).flat().length;
 
+  // Fire-and-forget as before: the store persists first, then mirrors, so a rejected delete
+  // leaves the closet untouched.
+  const handleDelete = (id: string) => {
+    void removeUpload(id);
+    setConfirmingId(null);
+  };
+
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex flex-col items-center gap-4 text-center">
+      {/* The page's longest scroll would otherwise open cold, on bare paper, while everything
+          below it carried colour (page-auras Decision 10). */}
+      <header className="relative flex flex-col items-center gap-4 text-center">
+        <Aura variant="pool" />
         <h1 className="font-display text-ink text-4xl font-medium sm:text-5xl">
           the closet
         </h1>
+        {/* The header's gap-4 is generous for a trim, so the ribbon pulls up under the
+            title rather than floating midway to the count. */}
+        <Ribbon variant="gingham" className="-mt-2 h-6 w-44 sm:h-7 sm:w-52" />
         <p className="font-body text-ink/55 text-sm">
           {total === 0
             ? "Nothing in here yet"
@@ -210,26 +310,35 @@ export function ClosetPage() {
         const items = closet[category];
 
         return (
-          <section key={category} className="flex flex-col gap-3">
+          <section key={category} className="relative flex flex-col gap-3">
+            {/* Anchored to the section, so the pool travels with it — a pool that identifies
+                the tops section has to move with the tops. An empty section is short and gets
+                a small pool for free (Decision 11). */}
+            <Aura variant="pool" category={category} />
+
             <div className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className={`watercolor-dot h-2 w-2 ${CATEGORY_TINT[category]}`}
-              />
+              <CategoryShape category={category} />
               <h2 className="font-body text-ink/45 text-[11px] tracking-[0.18em] uppercase">
                 {CATEGORY_LABEL[category]}
               </h2>
+              <RunningStitch />
             </div>
 
             {items.length === 0 ? (
               <p className="font-body text-ink/45 py-4 text-sm italic">
-                Nothing here yet — add one and it joins the shuffle straight
-                away.
+                Nothing here yet! Add one to get started.
               </p>
             ) : (
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
                 {items.map((item) => (
-                  <Tile key={item.id} item={item} />
+                  <Tile
+                    key={item.id}
+                    item={item}
+                    confirming={confirmingId === item.id}
+                    onDelete={() => handleDelete(item.id)}
+                    onRequestConfirm={() => setConfirmingId(item.id)}
+                    onCancelConfirm={() => setConfirmingId(null)}
+                  />
                 ))}
               </div>
             )}

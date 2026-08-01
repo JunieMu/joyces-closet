@@ -52,3 +52,21 @@ export const useOutfitsStore = create<OutfitsState>()((set) => ({
     return fresh.length;
   },
 }));
+
+/**
+ * The resolve seam for a possibly-deleted saved outfit — closet.ts's getItem/useClosetItem
+ * pair (closet.ts:14-30) one hop out: plans reference SavedOutfits the way outfits reference
+ * items, and a dead id resolves to undefined for the caller to render honestly rather than
+ * crash on. A linear find rather than closet.ts's Map index on purpose — the week page
+ * resolves at most seven ids per render against a list of dozens, where the closet index
+ * serves module-init shuffles over every item.
+ */
+export function getSavedOutfit(id: string): SavedOutfit | undefined {
+  return useOutfitsStore.getState().saved.find((saved) => saved.id === id);
+}
+
+export function useSavedOutfit(id: string | null): SavedOutfit | undefined {
+  return useOutfitsStore((state) =>
+    id === null ? undefined : state.saved.find((saved) => saved.id === id),
+  );
+}

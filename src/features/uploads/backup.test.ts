@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { SavedOutfit } from "../outfits/store";
+import type { PlanEntry } from "../week/plan";
 import {
   BACKUP_KIND,
   BACKUP_VERSION,
@@ -37,6 +38,13 @@ const outfit: SavedOutfit = {
   },
 };
 
+// All three plan-entry kinds: the standing rotation, a dated override, and an explicit skip.
+const plans: PlanEntry[] = [
+  { kind: "weekday", weekday: 1, outfitId: "outfit-1" },
+  { kind: "date", date: "2026-08-15", outfitId: "outfit-1" },
+  { kind: "date", date: "2026-08-16", outfitId: null },
+];
+
 const EXPORTED_AT = "2026-07-27T12:00:00.000Z";
 
 describe("base64 round-trip", () => {
@@ -63,27 +71,38 @@ describe("base64 round-trip", () => {
 
 describe("encodeBackup", () => {
   it("writes a file that decodeBackup reads back unchanged", () => {
-    const decoded = decodeBackup(encodeBackup([item()], [outfit], EXPORTED_AT));
+    const decoded = decodeBackup(
+      encodeBackup([item()], [outfit], plans, EXPORTED_AT),
+    );
 
     expect(decoded.items).toEqual([item()]);
     expect(decoded.outfits).toEqual([outfit]);
+    expect(decoded.plans).toEqual(plans);
     expect(decoded.skipped).toBe(0);
   });
 
+  // The no-bump decision (2026-07-31 week-planning Decision 8), made visible: `plans` was
+  // added to the file without moving the version, so old builds still accept new backups.
   it("stamps the file so it can be recognised later", () => {
-    const parsed: unknown = JSON.parse(encodeBackup([], [], EXPORTED_AT));
+    const parsed: unknown = JSON.parse(encodeBackup([], [], [], EXPORTED_AT));
 
     expect(parsed).toMatchObject({
       kind: BACKUP_KIND,
-      version: BACKUP_VERSION,
+      version: 1,
       exportedAt: EXPORTED_AT,
     });
+    expect(BACKUP_VERSION).toBe(1);
   });
 
   it("round-trips an empty closet", () => {
-    const decoded = decodeBackup(encodeBackup([], [], EXPORTED_AT));
+    const decoded = decodeBackup(encodeBackup([], [], [], EXPORTED_AT));
 
-    expect(decoded).toEqual({ items: [], outfits: [], skipped: 0 });
+    expect(decoded).toEqual({
+      items: [],
+      outfits: [],
+      plans: [],
+      skipped: 0,
+    });
   });
 });
 
@@ -111,13 +130,18 @@ describe("decodeBackup rejects a file that isn't ours", () => {
 });
 
 describe("decodeBackup drops bad entries without losing the good ones", () => {
-  function fileWith(items: unknown[], outfits: unknown[] = []): string {
+  function fileWith(
+    items: unknown[],
+    outfits: unknown[] = [],
+    plans: unknown[] = [],
+  ): string {
     return JSON.stringify({
       kind: BACKUP_KIND,
       version: BACKUP_VERSION,
       exportedAt: EXPORTED_AT,
       items,
       outfits,
+      plans,
     });
   }
 
@@ -150,10 +174,30 @@ describe("decodeBackup drops bad entries without losing the good ones", () => {
     expect(decoded.skipped).toBe(1);
   });
 
+  it("skips a plan entry whose shape is wrong but keeps the rest", () => {
+    const decoded = decodeBackup(
+      fileWith(
+        [],
+        [],
+        [...plans, { kind: "weekday", weekday: 7, outfitId: "outfit-1" }],
+      ),
+    );
+
+    expect(decoded.plans).toEqual(plans);
+    expect(decoded.skipped).toBe(1);
+  });
+
+  // The old-backup compatibility guarantee: every file written before the week page existed
+  // has no `plans` key at all, and must still import cleanly (Decision 8).
   it("treats missing collections as empty rather than failing", () => {
     const text = JSON.stringify({ kind: BACKUP_KIND, version: BACKUP_VERSION });
 
-    expect(decodeBackup(text)).toEqual({ items: [], outfits: [], skipped: 0 });
+    expect(decodeBackup(text)).toEqual({
+      items: [],
+      outfits: [],
+      plans: [],
+      skipped: 0,
+    });
   });
 });
 

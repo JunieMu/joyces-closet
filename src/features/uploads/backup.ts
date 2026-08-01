@@ -1,10 +1,18 @@
 import type { ItemCategory } from "../closet/types";
 import { isOutfitShape } from "../shuffle/outfit";
 import type { SavedOutfit } from "../outfits/store";
+import { isPlanEntry, type PlanEntry } from "../week/plan";
 import type { TopSubtype } from "./types";
 
 /** Marks the file as ours, so importing an unrelated .json fails cleanly instead of oddly. */
 export const BACKUP_KIND = "joyces-closet:backup";
+/**
+ * Still 1 with `plans` added (2026-07-31 week-planning Decision 8): a bump would make old
+ * builds reject new files outright (the version gate below), where staying put degrades
+ * gracefully in both directions — an old build ignores the unknown key, and a new build
+ * reading an old file coerces the missing array to []. The only cost is that an old build
+ * re-exporting drops plans, which is a non-issue for a single-user, per-browser app.
+ */
 export const BACKUP_VERSION = 1;
 
 const CATEGORIES = new Set<string>([
@@ -36,11 +44,13 @@ export interface BackupFile {
   exportedAt: string;
   items: BackupItem[];
   outfits: SavedOutfit[];
+  plans: PlanEntry[];
 }
 
 export interface DecodedBackup {
   items: BackupItem[];
   outfits: SavedOutfit[];
+  plans: PlanEntry[];
   /** Entries dropped for failing validation — surfaced so an import can say so out loud. */
   skipped: number;
 }
@@ -102,6 +112,7 @@ function isSavedOutfit(value: unknown): value is SavedOutfit {
 export function encodeBackup(
   items: BackupItem[],
   outfits: SavedOutfit[],
+  plans: PlanEntry[],
   exportedAt: string,
 ): string {
   const file: BackupFile = {
@@ -110,6 +121,7 @@ export function encodeBackup(
     exportedAt,
     items,
     outfits,
+    plans,
   };
   // Not pretty-printed: base64 payloads dominate the file anyway, and indentation would
   // add megabytes for no one's benefit.
@@ -146,13 +158,19 @@ export function decodeBackup(text: string): DecodedBackup {
 
   const rawItems = Array.isArray(file.items) ? file.items : [];
   const rawOutfits = Array.isArray(file.outfits) ? file.outfits : [];
+  // Absent from every backup written before the week page existed (Decision 8).
+  const rawPlans = Array.isArray(file.plans) ? file.plans : [];
 
   const items = rawItems.filter(isBackupItem);
   const outfits = rawOutfits.filter(isSavedOutfit);
+  const plans = rawPlans.filter(isPlanEntry);
   const skipped =
-    rawItems.length - items.length + (rawOutfits.length - outfits.length);
+    rawItems.length -
+    items.length +
+    (rawOutfits.length - outfits.length) +
+    (rawPlans.length - plans.length);
 
-  return { items, outfits, skipped };
+  return { items, outfits, plans, skipped };
 }
 
 /** A stable, sortable filename — the date only, since one export a day is the realistic pace. */

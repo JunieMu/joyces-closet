@@ -16,5 +16,7 @@ export function toClosetItem(record: UploadRecord): ClosetItem {
     name: record.name,
     category: record.category,
     image: URL.createObjectURL(record.image),
+    width: record.width,
+    height: record.height,
   };
 }

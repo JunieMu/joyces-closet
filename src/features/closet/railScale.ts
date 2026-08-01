@@ -39,7 +39,7 @@ export const RAIL_ALIGN: Record<ItemCategory, "center" | "top"> = {
   accessories: "center",
 };
 
-/** The watercolor dot beside a category label (the Rail.tsx:109-114 idiom). */
+/** Tints the category shape marker beside a label (see components/CategoryShape.tsx). */
 export const CATEGORY_TINT: Record<ItemCategory, string> = {
   tops: "text-tint-tops",
   bottoms: "text-tint-bottoms",

@@ -8,6 +8,14 @@
   --color-accent: #b05e5e; /* the single ACTION color (buttons, links, active nav, focus) */
   --color-wash: #f3e2e0; /* soft fill / hover tint */
 
+  /* Secondary accents (2026-07-30 Decision 6): the threads the title ribbons weave
+     alongside --color-accent; future trims may draw on them too. */
+  --color-accent-2: #c9ab6a;
+  --color-accent-3: #93ab8c;
+  /* The week's polka thread (2026-07-31 week-planning Decision 10) — a fourth page
+     needed a fourth thread, since the ribbon family is one accent per page. */
+  --color-accent-4: #8aa2b8;
+
   /* Category tints (Decision 2): informational, heavily muted watercolor tones. */
   --color-tint-tops: #cf8d8d;
   --color-tint-bottoms: #9aa47f;
@@ -24,10 +32,35 @@
   --font-display: "Fraunces", serif;
   --font-body: "Work Sans", sans-serif;
 
-  /* Item entering a rail (arrow step, per-rail shuffle, and the Shuffle All cascade). */
+  /* A rail frame APPEARING with nothing to exchange with: first paint, a loaded outfit, or a
+     rail that the base flip brought into existence (2026-07-30 Decision 2). */
   --animate-rail-in: rail-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  /* A rail frame being EXCHANGED (arrow, swipe, per-rail ⇄, Shuffle All): the outgoing frame
+     leaves the way the incoming one arrived. Identical duration and curve on both halves is
+     what makes the pair read as one filmstrip step (2026-07-30 Decision 1). */
+  --animate-rail-slide-out-left: rail-slide-out-left 0.4s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rail-slide-out-right: rail-slide-out-right 0.4s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rail-slide-in-left: rail-slide-in-left 0.4s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rail-slide-in-right: rail-slide-in-right 0.4s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+
   /* Save popover entrance. */
   --animate-pop-in: pop-in 0.18s ease-out both;
+
+  /* Its mirror, for a panel that dismisses rather than unmounting outright (the delete
+     confirmation's cancel). Deliberately quicker than the entrance and eased the other way:
+     an exit that takes as long as the arrival reads as sluggish. */
+  --animate-pop-out: pop-out 0.15s ease-in both;
+
+  /* A card being taken apart (2026-07-30 Decision 7): a confirmed delete plays out on the card
+     itself before the grid reflows. The reduced-motion clamp at the bottom of this file
+     collapses this to 0.01ms rather than removing it, so animationend still fires and the
+     delete still happens. */
+  --animate-card-leave: card-leave 0.2s ease-in both;
 
   /* Soft painterly lift for outfit cards on hover (usable as hover:shadow-painterly). */
   --shadow-painterly:
@@ -44,6 +77,39 @@
       transform: translateY(0) scale(1);
     }
   }
+  /* Travel is a full frame width; overflow-hidden on the rail window does the clipping. */
+  @keyframes rail-slide-out-left {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes rail-slide-out-right {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes rail-slide-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes rail-slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
   @keyframes pop-in {
     from {
       opacity: 0;
@@ -52,6 +118,26 @@
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes pop-out {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+    }
+  }
+  @keyframes card-leave {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
     }
   }
 }
@@ -69,6 +155,9 @@
   --color-ink: #3d2e2e;
   --color-accent: #b05e5e;
   --color-wash: #f3e2e0;
+  --color-accent-2: #c9ab6a; /* warm gold */
+  --color-accent-3: #93ab8c; /* sage */
+  --color-accent-4: #8aa2b8; /* dusty blue — the cool thread rose/gold/sage lacked */
   --color-tint-tops: #cf8d8d;
   --color-tint-bottoms: #9aa47f;
   --color-tint-dresses: #ab8fc0;
@@ -86,6 +175,9 @@
   --color-ink: #443649;
   --color-accent: #8d76ae;
   --color-wash: #ebe3f3;
+  --color-accent-2: #d4b878; /* butter — the warm break in an all-purple palette */
+  --color-accent-3: #8fa0c9; /* periwinkle */
+  --color-accent-4: #c493a8; /* dusty rose — the warm pink an all-cool trio lacked */
   --color-tint-tops: #c08fa8;
   --color-tint-bottoms: #8f9dbb;
   --color-tint-dresses: #a48bc4;
@@ -103,6 +195,9 @@
   --color-ink: #3c3a2c;
   --color-accent: #7d8f5c;
   --color-wash: #e8ecd8;
+  --color-accent-2: #c9a55e; /* gold */
+  --color-accent-3: #ad6d8a; /* berry — the pop moss and teal lacked */
+  --color-accent-4: #7fa3a8; /* stream teal — the cool water tone */
   --color-tint-tops: #c98f8f;
   --color-tint-bottoms: #8ba173;
   --color-tint-dresses: #ab8fb8;
@@ -120,6 +215,9 @@
   --color-ink: #31423f;
   --color-accent: #58908a;
   --color-wash: #ddeae7;
+  --color-accent-2: #c2a982; /* sand — warm counterweight to an all-cool palette */
+  --color-accent-3: #c69b94; /* shell pink */
+  --color-accent-4: #8f9fc0; /* dusty periwinkle — the blue-violet teal/sand/shell lacked */
   --color-tint-tops: #8fa9b8;
   --color-tint-bottoms: #7fa596;
   --color-tint-dresses: #9d92bb;
@@ -137,6 +235,9 @@
   --color-ink: #47332a;
   --color-accent: #bf7048;
   --color-wash: #f7e3d0;
+  --color-accent-2: #8ba7bd; /* soft blue — cools an all-warm palette */
+  --color-accent-3: #c3a668; /* gold */
+  --color-accent-4: #94a578; /* olive-sage — the green terracotta/blue/gold lacked */
   --color-tint-tops: #ce8d72;
   --color-tint-bottoms: #a89a5f;
   --color-tint-dresses: #c48ba4;
@@ -148,29 +249,22 @@
   --color-aura-3: #d9b8ac;
 }
 
-/* A soft-edged paint dab; color comes from currentColor so any text-* utility tints it
-   (theme picker dots here, rail category dots in the texture pass). */
-.watercolor-dot {
-  border-radius: 9999px;
-  background:
-    radial-gradient(
-      circle at 32% 30%,
-      color-mix(in srgb, currentColor 55%, white 45%) 0%,
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 55% 60%,
-      currentColor 0%,
-      color-mix(in srgb, currentColor 78%, transparent) 62%,
-      transparent 78%
-    );
-}
-
 :root {
   /* The sketchbook tooth (Decision 7): one shared feTurbulence tile — a data URI is
      code, not an asset (Decision 3). Tune the rect opacity to taste; it is the single
      knob for grain strength everywhere. */
   --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+
+  /* The page area right of the sidebar — what "content column" means for the auras
+     (2026-07-31 page-auras Decision 6). The 17rem duplicates Layout.tsx's grid track, which
+     only exists at md+; the two must move together. */
+  --column-width: 100vw;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --column-width: calc(100vw - 17rem);
+  }
 }
 
 body {
@@ -180,6 +274,12 @@ body {
     --texture-grain
   ); /* the sketchbook page, behind all content */
   color: var(--color-ink);
+
+  /* --column-width is expressed in vw, which on a platform with classic scrollbars is wider
+     than the content box by the scrollbar's width. Clip rather than let a decorative layer
+     add a sideways scroll. `clip`, not `hidden`: it does not create a scroll container, so
+     the viewport stays the scrollport and the sticky sidebar is unaffected. */
+  overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -192,10 +292,24 @@ body {
   }
 
   /* The global 0.01ms clamp would leave `infinite alternate` looping frantically, so kill
-     the aura animations outright: bloom's `both` fill is skipped and blobs rest at 0.6. */
+     the aura animations outright: bloom's `both` fill is skipped and every layer rests at
+     the opacity declared as a property (blobs at 0.6). Each variant is named because there
+     is no shared class — Today's markup is emitted verbatim (2026-07-31 page-auras
+     Decision 14), so it carries `.aura` alone.
+
+     `!important`, like the clamp above it: every aura rule is defined LATER in this file at
+     the same specificity, so a plain `animation: none` here loses the cascade on source
+     order alone and this whole block silently does nothing. Important also means a variant
+     added below can never re-break it by being further down the file. */
   .aura,
-  .aura > div {
-    animation: none;
+  .aura > div,
+  .aura-horizon,
+  .aura-horizon > div,
+  .aura-gallery,
+  .aura-gallery > div,
+  .aura-pool,
+  .aura-pool > div {
+    animation: none !important;
   }
 }
 
@@ -231,17 +345,22 @@ body {
   position: relative;
   isolation: isolate;
 }
+/* The falloff is long on purpose (2026-07-30 Decision 8): the short one read as a hard
+   paint line under the quote. A mid stop keeps the blob's centre from washing out now that
+   it fades all the way to 88%, and the extra inset gives the bigger blur room to dissipate
+   inside the element rather than clipping. */
 .quote-wash::before {
   content: "";
   position: absolute;
-  inset: -1rem -0.75rem;
+  inset: -1.5rem -1.25rem;
   z-index: -1;
   background: radial-gradient(
     ellipse at 30% 25%,
-    color-mix(in srgb, var(--color-aura-1) 45%, transparent),
-    transparent 70%
+    color-mix(in srgb, var(--color-aura-1) 42%, transparent),
+    color-mix(in srgb, var(--color-aura-1) 18%, transparent) 55%,
+    transparent 88%
   );
-  filter: blur(6px);
+  filter: blur(14px);
 }
 
 /* Outfit cards: paper tooth + a soft category-tint wash bleeding down from the top edge.
@@ -280,6 +399,23 @@ body {
     transparent
   );
   pointer-events: none;
+}
+
+/* The delete confirmation's wash (2026-07-30 Decision 8): the card's own top-down gradient
+   deepened, flooding the full height instead of the top 2.75rem, and in the action color rather
+   than the card's decorative tint — this moment is an action, not decoration. It should read as
+   the card's own wash intensifying, not as a foreign panel dropped on top.
+
+   `background-image` rather than the `background` shorthand on purpose: the shorthand would
+   reset the bg-paper/70 veil the layer sets alongside it, and the veil is what keeps the ghosted
+   item at the ~20-25% the decision calls for. */
+.confirm-wash {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-accent) 30%, transparent),
+    color-mix(in srgb, var(--color-accent) 14%, transparent) 60%,
+    color-mix(in srgb, var(--color-accent) 8%, transparent)
+  );
 }
 
 /* Primary button: subtle painterly texture on hover only (Decision 7). */
@@ -360,5 +496,291 @@ body {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* ---- Page auras (2026-07-31 page-auras) -----------------------------------------
+   Today's `.aura` above is the centerpiece and is not touched (Decision 14). The variants
+   below are its siblings: same DOM shape — container positions and blooms, children carry
+   colour and breathe — but softness comes from long gradient falloff rather than
+   blur(56px) (Decision 12). That is the performance answer for the closet's seven pools and
+   a differentiation axis at once: Today is a blurred cloud, the rest are washes.
+
+   All three sit at z-index -1 under a `position: relative` parent that is deliberately NOT
+   isolated, unlike Today's canvas. Without a stacking context in between they land in the
+   root's negative layer — after the paper background, before all in-flow content — which is
+   what lets them read behind their page's own header text (Decisions 8 and 10). */
+.aura-horizon,
+.aura-gallery,
+.aura-pool {
+  z-index: -1;
+  pointer-events: none;
+  animation: aura-bloom 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Full-column bleed (Decision 6): `main` is mx-auto inside the column, so a box centred on
+   its containing block is centred on the column too.
+
+   Centred by half-offset and negative margin rather than the usual `left:0; right:0;
+   margin-inline:auto` trick, because that trick only centres while the box FITS: an
+   over-constrained absolutely positioned box whose equal auto margins would come out
+   negative is defined to set margin-left to 0 in ltr and dump the whole remainder on the
+   right (CSS 2.1 §10.3.7) — which left-aligns the aura on `main` and bleeds it out one side
+   only. Measured in Chrome: left 148px / right 1388px against a 0–1240px column. This
+   formulation is exact at every width and, unlike translateX(-50%), leaves `transform` free
+   for aura-bloom. */
+.aura-horizon,
+.aura-pool {
+  position: absolute;
+  left: 50%;
+  width: var(--column-width);
+  margin-left: calc(var(--column-width) / -2);
+}
+
+/* Week (Decision 8): overhangs the grid top and bottom so the seven opaque boxes float in the
+   light instead of covering it. Two overlapping ellipses rather than a masked linear
+   gradient: the traverse comes out of their overlap, and each one's own falloff gives the
+   band its soft vertical edges for free — no filter anywhere.
+
+   The band deliberately does NOT mark today: DayBox.tsx:74 already encodes that, and
+   decoration duplicating a data encoding drifts out of sync the moment either changes. */
+.aura-horizon {
+  top: -7rem;
+  bottom: -4rem;
+}
+.aura-horizon > div {
+  /* The polka thread tempered by an aura token, never raw: accents are tuned for line work
+     at full opacity and go harsh at wash scale (Decision 2). The far end is aura-1 alone,
+     which is what makes the traverse read as a journey between two colours. */
+  --horizon-near: color-mix(
+    in srgb,
+    var(--color-accent-4) 70%,
+    var(--color-aura-1)
+  );
+
+  position: absolute;
+  inset: 0;
+  /* Strength lives here and ONLY here, exactly as Today's blobs do it: the gradient carries
+     the colour at full strength and `opacity` is the single loudness knob. Diluting in both
+     places at once multiplies out to a wash nobody can see. */
+  opacity: 0.28; /* resting value — also the reduced-motion static state */
+  background:
+    radial-gradient(
+      56% 50% at 20% 50%,
+      var(--horizon-near),
+      color-mix(in srgb, var(--horizon-near) 42%, transparent) 46%,
+      transparent 78%
+    ),
+    radial-gradient(
+      58% 50% at 76% 50%,
+      var(--color-aura-1),
+      color-mix(in srgb, var(--color-aura-1) 42%, transparent) 46%,
+      transparent 78%
+    );
+  animation: aura-horizon-breathe 52s ease-in-out infinite alternate;
+}
+
+/* Horizontal only: the band widens and relaxes rather than pulsing. */
+@keyframes aura-horizon-breathe {
+  from {
+    opacity: 0.24;
+    transform: scaleX(1);
+  }
+  to {
+    opacity: 0.3;
+    transform: scaleX(1.06);
+  }
+}
+
+/* Outfits (Decision 9): fixed, so scrolling a long grid pans across a wall while the light
+   holds still — the deliberate counterpart to the closet's pools travelling with their
+   sections. Fixed positioning ignores the grid column entirely, hence the explicit md+ inset
+   to keep the wash off the sidebar (Decision 6). Larger radius and softer falloff than
+   Today, in the stripe thread with aura-3. */
+.aura-gallery {
+  position: fixed;
+  inset: 0;
+}
+@media (min-width: 768px) {
+  .aura-gallery {
+    left: 17rem;
+  }
+}
+.aura-gallery > div {
+  position: absolute;
+  /* Strength lives here and ONLY here — see the horizon above. A shade above the closet's
+     pools because this page is mostly open wall: the same value that reads as a pool behind
+     a section header disappears across a whole viewport. */
+  opacity: 0.25; /* resting value — also the reduced-motion static state */
+}
+.aura-gallery-1 {
+  /* The stripe thread tempered by aura-3, per Decision 2 — see the horizon above. */
+  --gallery-near: color-mix(
+    in srgb,
+    var(--color-accent-3) 65%,
+    var(--color-aura-3)
+  );
+
+  top: -12%;
+  left: -8%;
+  width: 64%;
+  height: 62%;
+  background: radial-gradient(
+    closest-side,
+    var(--gallery-near),
+    color-mix(in srgb, var(--gallery-near) 42%, transparent) 48%,
+    transparent 86%
+  );
+  animation: aura-gallery-breathe 64s ease-in-out infinite alternate;
+}
+.aura-gallery-2 {
+  right: -10%;
+  bottom: -14%;
+  width: 68%;
+  height: 64%;
+  background: radial-gradient(
+    closest-side,
+    var(--color-aura-3),
+    color-mix(in srgb, var(--color-aura-3) 42%, transparent) 48%,
+    transparent 86%
+  );
+  animation: aura-gallery-breathe 71s ease-in-out -23s infinite alternate;
+}
+
+/* The smallest amplitude of the four — at this apparent distance, barely perceptible is the
+   brief. The negative delay above keeps the two corners off each other's phase. */
+@keyframes aura-gallery-breathe {
+  from {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.25;
+    transform: scale(1.04);
+  }
+}
+
+/* Closet (Decision 10): pools that scroll WITH their sections. Because a pool is anchored to
+   its section, an empty section is short and gets a small pool for free — emptiness solves
+   itself geometrically, with no conditional anywhere (Decision 11).
+
+   Weight: the header pool lands near the sidebar's .quote-wash, the section pools quieter
+   still. Both bleed the full column width, so the colour reaches the page margins rather
+   than stopping at the tile grid's edge (Decision 6). */
+.aura-pool {
+  top: -4rem;
+  height: 13rem;
+}
+.aura-pool-header {
+  /* The gingham thread tempered by aura-2, per Decision 2 — see the horizon above. The six
+     section tints below need no tempering: they are already the muted watercolour tones the
+     category system is built on, and mixing them would blur the six apart-ness Decision 10
+     is entirely about. */
+  --aura-pool: color-mix(
+    in srgb,
+    var(--color-accent-2) 60%,
+    var(--color-aura-2)
+  );
+  top: -4rem;
+  height: 19rem;
+}
+.aura-pool > div {
+  position: absolute;
+  inset: 0;
+  /* Strength lives here and ONLY here — see the horizon above. Higher than it looks: the
+     front-loaded ramp below spends most of its radius near-transparent, so the same number
+     that read as a solid band with the old even ramp reads as a faint haze with this one. */
+  opacity: 0.25; /* resting value — also the reduced-motion static state */
+  /* Two things keep these edges soft, and both are easy to lose:
+
+     1. The ellipse FITS INSIDE the box. Its fully-transparent radius is the ending shape
+        (44% 38%) offset from the centre (44% 40%), so it reaches zero at 0%/88% across and
+        2%/78% down — inside the box on every side. An ending shape that overhangs gets
+        clipped by the element's own box mid-falloff, which paints a dead-straight line
+        along the top and left edges. That is what a "band" looks like.
+     2. The ramp is front-loaded. Colour drops to about a quarter of peak within the first
+        40% of the radius and then trails the remaining 60% to nothing, so the outer fade
+        gets ~47px to happen in rather than the ~15px an evenly-spaced ramp would give it in
+        a box this short. Same trick as .quote-wash's long tail to 88%, and the reason no
+        filter is needed here (Decision 12). */
+  background: radial-gradient(
+    44% 38% at 44% 40%,
+    var(--aura-pool),
+    color-mix(in srgb, var(--aura-pool) 55%, transparent) 18%,
+    color-mix(in srgb, var(--aura-pool) 26%, transparent) 42%,
+    color-mix(in srgb, var(--aura-pool) 8%, transparent) 70%,
+    transparent 100%
+  );
+  animation: aura-pool-breathe 48s ease-in-out infinite alternate;
+}
+/* The header pool carries the sidebar quote's weight, the sections stay quieter (Decision 10).
+   That needs its OWN keyframes, not just a heavier `opacity`: the shared breathe animates
+   opacity, and a running animation overrides the property outright — so a static value here
+   would only ever be visible under reduced motion, and the two pools would render identically
+   the rest of the time. */
+.aura-pool-header > div {
+  opacity: 0.29; /* resting value — also the reduced-motion static state */
+  animation-name: aura-pool-header-breathe;
+}
+@keyframes aura-pool-header-breathe {
+  from {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.29;
+    transform: scale(1.04);
+  }
+}
+
+/* One tint per category, mirroring the .wash-* idiom above. The delay lives here rather than
+   on the shared rule because no two pools may breathe in phase (Decision 15 #3) and these
+   sit in six different parents, so nth-child cannot reach them. Seven distinct phases against
+   one 48s cycle. */
+.aura-pool-tops {
+  --aura-pool: var(--color-tint-tops);
+}
+.aura-pool-tops > div {
+  animation-delay: -4s;
+}
+.aura-pool-bottoms {
+  --aura-pool: var(--color-tint-bottoms);
+}
+.aura-pool-bottoms > div {
+  animation-delay: -11s;
+}
+.aura-pool-dresses {
+  --aura-pool: var(--color-tint-dresses);
+}
+.aura-pool-dresses > div {
+  animation-delay: -18s;
+}
+.aura-pool-jackets {
+  --aura-pool: var(--color-tint-jackets);
+}
+.aura-pool-jackets > div {
+  animation-delay: -25s;
+}
+.aura-pool-shoes {
+  --aura-pool: var(--color-tint-shoes);
+}
+.aura-pool-shoes > div {
+  animation-delay: -32s;
+}
+.aura-pool-accessories {
+  --aura-pool: var(--color-tint-accessories);
+}
+.aura-pool-accessories > div {
+  animation-delay: -39s;
+}
+
+@keyframes aura-pool-breathe {
+  from {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.27;
+    transform: scale(1.04);
   }
 }

@@ -1,5 +1,6 @@
 import { useClosetStore } from "../closet/useClosetStore";
 import { useOutfitsStore } from "../outfits/useOutfitsStore";
+import { usePlanStore } from "../week/usePlanStore";
 import {
   backupFilename,
   decodeBackup,
@@ -20,6 +21,7 @@ export interface ImportResult {
   itemsAdded: number;
   itemsAlreadyPresent: number;
   outfitsAdded: number;
+  plansAdded: number;
   skipped: number;
 }
 
@@ -37,7 +39,7 @@ function download(text: string, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-/** Everything in the closet plus every saved outfit, as one self-contained JSON file. */
+/** Everything in the closet, every saved outfit and the plan, as one self-contained JSON file. */
 export async function exportBackup(now: Date): Promise<number> {
   const records = await uploadStore.list();
 
@@ -55,8 +57,9 @@ export async function exportBackup(now: Date): Promise<number> {
   );
 
   const outfits = useOutfitsStore.getState().saved;
+  const plans = usePlanStore.getState().entries;
   download(
-    encodeBackup(items, outfits, now.toISOString()),
+    encodeBackup(items, outfits, plans, now.toISOString()),
     backupFilename(now),
   );
 
@@ -69,7 +72,7 @@ export async function exportBackup(now: Date): Promise<number> {
  * — there is no "replace my closet" path, because getting that wrong costs the wardrobe.
  */
 export async function importBackup(file: File): Promise<ImportResult> {
-  const { items, outfits, skipped } = decodeBackup(await file.text());
+  const { items, outfits, plans, skipped } = decodeBackup(await file.text());
 
   const present = new Set((await uploadStore.list()).map(({ id }) => id));
   const fresh = items.filter((item) => !present.has(item.id));
@@ -94,6 +97,9 @@ export async function importBackup(file: File): Promise<ImportResult> {
     itemsAdded: fresh.length,
     itemsAlreadyPresent: items.length - fresh.length,
     outfitsAdded: useOutfitsStore.getState().importOutfits(outfits),
+    // Slot-keyed and additive, like outfits: a day already planned locally keeps its own
+    // entry, so importing the same file twice adds nothing the second time.
+    plansAdded: usePlanStore.getState().importEntries(plans),
     skipped,
   };
 }

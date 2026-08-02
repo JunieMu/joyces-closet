@@ -31,6 +31,7 @@ function fixture(counts: Partial<Record<ItemCategory, number>>): Closet {
     bottoms: items("bottoms", counts.bottoms ?? 0),
     dresses: items("dresses", counts.dresses ?? 0),
     jackets: items("jackets", counts.jackets ?? 0),
+    bags: items("bags", counts.bags ?? 0),
     shoes: items("shoes", counts.shoes ?? 0),
     accessories: items("accessories", counts.accessories ?? 0),
   };
@@ -61,6 +62,7 @@ function seeded(seed: number): Rng {
 const dressBase: Outfit = {
   base: { kind: "dress", dressId: "dresses-1" },
   jacketId: null,
+  bagId: null,
   shoesId: "shoes-1",
   accessoryId: null,
 };
@@ -102,6 +104,7 @@ describe("optional slots shuffle over items + none", () => {
     tops: 1,
     bottoms: 1,
     jackets: 3,
+    bags: 1,
     shoes: 1,
     accessories: 1,
   });
@@ -129,6 +132,18 @@ describe("optional slots shuffle over items + none", () => {
     expect(outfit.accessoryId).toBe(expected);
   });
 
+  // Bags are their own optional slot now (2026-08-02 Decision 1), rolling independently of
+  // accessories rather than sharing one draw with them. 1 bag ⇒ 2 options, same table shape.
+  it.each([
+    [0.0, "bags-1"],
+    [0.49, "bags-1"],
+    [0.5, null],
+    [0.99, null],
+  ])("roll %s picks bag %s", (roll, expected) => {
+    const outfit = shuffleSlot(dressBase, "bag", closet, scripted(roll));
+    expect(outfit.bagId).toBe(expected);
+  });
+
   it("never leaves shoes empty", () => {
     const outfit = shuffleSlot(dressBase, "shoes", closet, scripted(0.99));
     expect(outfit.shoesId).toBe("shoes-1");
@@ -146,6 +161,7 @@ describe("shuffleSlot touches one slot at a time", () => {
   const outfit: Outfit = {
     base: { kind: "separates", topId: "tops-1", bottomId: "bottoms-1" },
     jacketId: "jackets-1",
+    bagId: null,
     shoesId: "shoes-1",
     accessoryId: "accessories-1",
   };
@@ -290,6 +306,7 @@ describe("isOutfitValid", () => {
   const valid: Outfit = {
     base: { kind: "separates", topId: "tops-1", bottomId: "bottoms-1" },
     jacketId: "jackets-1",
+    bagId: null,
     shoesId: "shoes-1",
     accessoryId: null,
   };
@@ -337,12 +354,14 @@ describe("repairOutfit", () => {
     tops: 2,
     bottoms: 2,
     jackets: 1,
+    bags: 1,
     shoes: 1,
     accessories: 1,
   });
   const valid: Outfit = {
     base: { kind: "separates", topId: "tops-2", bottomId: "bottoms-2" },
     jacketId: "jackets-1",
+    bagId: "bags-1",
     shoesId: "shoes-1",
     accessoryId: "accessories-1",
   };
@@ -353,11 +372,21 @@ describe("repairOutfit", () => {
 
   it("drops optional items that no longer exist", () => {
     const repaired = repairOutfit(
-      { ...valid, jacketId: "jackets-9", accessoryId: "accessories-9" },
+      {
+        ...valid,
+        jacketId: "jackets-9",
+        bagId: "bags-9",
+        accessoryId: "accessories-9",
+      },
       closet,
     );
 
-    expect(repaired).toEqual({ ...valid, jacketId: null, accessoryId: null });
+    expect(repaired).toEqual({
+      ...valid,
+      jacketId: null,
+      bagId: null,
+      accessoryId: null,
+    });
   });
 
   it("substitutes a required item that no longer exists", () => {
@@ -417,6 +446,7 @@ describe("isOutfitShape", () => {
   const valid: Outfit = {
     base: { kind: "separates", topId: "tops-1", bottomId: "bottoms-1" },
     jacketId: null,
+    bagId: null,
     shoesId: "shoes-1",
     accessoryId: "accessories-1",
   };

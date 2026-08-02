@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 import { buildIndex, toCloset } from "./merge";
 import type { ClosetItem, ItemCategory } from "./types";
 
+// Hand-written on purpose, rather than imported from types.ts: this is an independent
+// canary, so a future category added to the single source of truth without thinking fails
+// a test here instead of losing data at some storage seam.
 const CATEGORIES: ItemCategory[] = [
   "tops",
   "bottoms",
   "dresses",
   "jackets",
+  "bags",
   "shoes",
   "accessories",
 ];

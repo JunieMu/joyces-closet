@@ -12,6 +12,7 @@ describe("defaultItemName", () => {
     ["bottoms", "Bottoms · Jul 27"],
     ["dresses", "Dress · Jul 27"],
     ["jackets", "Jacket · Jul 27"],
+    ["bags", "Bag · Jul 27"],
     ["shoes", "Shoes · Jul 27"],
     ["accessories", "Accessory · Jul 27"],
   ])("names a %s upload after its date", (category, expected) => {

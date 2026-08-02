@@ -1,11 +1,12 @@
 import type { ItemCategory } from "../features/closet/types";
 
-/** The closet's six section pools, each in its own category tint (page-auras Decision 10). */
+/** The closet's seven section pools, each in its own category tint (page-auras Decision 10). */
 const POOL_TINT: Record<ItemCategory, string> = {
   tops: "aura-pool-tops",
   bottoms: "aura-pool-bottoms",
   dresses: "aura-pool-dresses",
   jackets: "aura-pool-jackets",
+  bags: "aura-pool-bags",
   shoes: "aura-pool-shoes",
   accessories: "aura-pool-accessories",
 };

@@ -90,6 +90,14 @@ export const PLACEMENT: Record<
     fillH: 0.91,
     anchor: { kind: "center" },
   },
+  // DERIVED, not measured — same status as dresses. The one measured accessory sample was
+  // bag1.png, but its 0.81 is retained by `accessories` (2026-08-02 Decision 2) rather than
+  // moving here, so `accessories` keeps its provenance and its regression fixture. Bags get a
+  // tighter 0.90 because fill is the only size lever that reaches the closet tile and the
+  // outfit-card thumbnail, where RAIL_FRAME does not apply. Existing bags filed under
+  // accessories keep accessory scale forever — the original upload is not retained — which is
+  // why they are deleted and re-uploaded rather than migrated.
+  bags: { canvas: SQUARE, fillW: 0.9, fillH: 0.9, anchor: { kind: "center" } },
   // n=1. Worst err 0.001.
   shoes: { canvas: SQUARE, fillW: 0.9, fillH: 0.9, anchor: { kind: "center" } },
   // n=1. Worst err 0.003.

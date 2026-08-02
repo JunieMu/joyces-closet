@@ -11,8 +11,8 @@ import { outfitUsesItem } from "../shuffle/outfit";
 import { exportBackup, importBackup } from "../uploads/backupFile";
 import { UploadFlow } from "../uploads/UploadFlow";
 import { useCloset } from "./closet";
-import { CATEGORIES, CATEGORY_LABEL } from "./railScale";
-import type { ClosetItem } from "./types";
+import { CATEGORY_LABEL } from "./railScale";
+import { CATEGORIES, type ClosetItem } from "./types";
 import { useClosetStore } from "./useClosetStore";
 
 const PRIMARY_PILL =

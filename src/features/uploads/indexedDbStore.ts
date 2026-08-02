@@ -1,17 +1,9 @@
+import { isItemCategory } from "../closet/types";
 import type { UploadStore } from "./store";
 import type { UploadRecord } from "./types";
 
 export const UPLOADS_DB = "joyces-closet:uploads:v1";
 export const UPLOADS_STORE = "items";
-
-const CATEGORIES = new Set([
-  "tops",
-  "bottoms",
-  "dresses",
-  "jackets",
-  "shoes",
-  "accessories",
-]);
 
 function isUploadRecord(value: unknown): value is UploadRecord {
   if (typeof value !== "object" || value === null) return false;
@@ -19,8 +11,7 @@ function isUploadRecord(value: unknown): value is UploadRecord {
   return (
     typeof candidate.id === "string" &&
     typeof candidate.name === "string" &&
-    typeof candidate.category === "string" &&
-    CATEGORIES.has(candidate.category) &&
+    isItemCategory(candidate.category) &&
     typeof candidate.createdAt === "string" &&
     candidate.image instanceof Blob &&
     typeof candidate.width === "number" &&

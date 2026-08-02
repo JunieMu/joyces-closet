@@ -33,6 +33,7 @@ const outfit: SavedOutfit = {
   outfit: {
     base: { kind: "separates", topId: "item-1", bottomId: "item-2" },
     jacketId: null,
+    bagId: null,
     shoesId: "item-3",
     accessoryId: null,
   },
@@ -185,6 +186,27 @@ describe("decodeBackup drops bad entries without losing the good ones", () => {
 
     expect(decoded.plans).toEqual(plans);
     expect(decoded.skipped).toBe(1);
+  });
+
+  // The same guarantee one release later (2026-08-02 Decision 11): a backup written before
+  // bags existed carries outfits with no `bagId` key, which the strict shape guard rejects.
+  // Backup files on disk are permanent artifacts, so this must keep working forever.
+  it("imports an outfit saved before bags existed, filling the empty slot", () => {
+    // Written out rather than derived from `outfit`, so the absent key is the point of the
+    // fixture rather than a side effect of how it was built.
+    const legacy = {
+      ...outfit,
+      outfit: {
+        base: { kind: "separates", topId: "item-1", bottomId: "item-2" },
+        jacketId: null,
+        shoesId: "item-3",
+        accessoryId: null,
+      },
+    };
+    const decoded = decodeBackup(fileWith([], [legacy]));
+
+    expect(decoded.outfits).toEqual([outfit]);
+    expect(decoded.skipped).toBe(0);
   });
 
   // The old-backup compatibility guarantee: every file written before the week page existed

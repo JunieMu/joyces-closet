@@ -1,4 +1,4 @@
-import { isOutfitShape } from "../shuffle/outfit";
+import { isOutfitShape, withSavedBagDefault } from "../shuffle/outfit";
 import type { OutfitStore, SavedOutfit } from "./store";
 
 export const SAVED_OUTFITS_KEY = "joyces-closet:saved-outfits:v1";
@@ -32,7 +32,13 @@ export function createLocalStorageOutfitStore(
 
     try {
       const parsed: unknown = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isSavedOutfit) : [];
+      // Normalized BEFORE filtering (2026-08-02 Decision 11): an outfit stored before bags
+      // existed has no `bagId` key, which isOutfitShape rejects — and since save/delete
+      // below read-filter-write the WHOLE array, a rejected outfit is deleted outright on
+      // the next mutation rather than merely failing to display.
+      return Array.isArray(parsed)
+        ? parsed.map(withSavedBagDefault).filter(isSavedOutfit)
+        : [];
     } catch {
       return [];
     }

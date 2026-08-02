@@ -44,8 +44,9 @@ function washClass(id: string): string {
  * shorts looked right. Each canvas gets a box shaped like it instead: the card's equivalent of
  * what RAIL_FRAME does for the shuffle rails.
  *
- * The long box reaches 96% of the card height. Nothing sits under it — both small slots are in
- * the lower corners — so a full-length leg simply runs to the card's lower edge.
+ * The long box reaches 96% of the card height. The small slots hug the card's left and right
+ * edges, and object-contain centres each garment in its own box, so a full-length leg running
+ * to the card's lower edge never actually collides with one.
  */
 const BOTTOM_BOX = {
   long: "top-[38%] left-1/2 h-[58%] w-[42%] -translate-x-1/2",
@@ -82,13 +83,14 @@ function Thumbnail({
 }
 
 /**
- * A mini paper doll: jacket behind the top (or dress), bottom below, and the two small slots
- * in the lower corners — accessory left, shoes right (user decision). Exported because the
- * week page reuses it for both the day rows and the assignment picker's thumbnails
- * (2026-07-31 week-planning): a planned day should look like the outfit it plans.
+ * A mini paper doll: jacket behind the top (or dress), bottom below, shoes bottom-right, and
+ * the bag and accessory stacked up the left edge (user decision, restacked 2026-08-02
+ * Decision 7). Exported because the week page reuses it for both the day rows and the
+ * assignment picker's thumbnails (2026-07-31 week-planning): a planned day should look like
+ * the outfit it plans.
  */
 export function OutfitPreview({ saved }: { saved: SavedOutfit }) {
-  const { base, jacketId, shoesId, accessoryId } = saved.outfit;
+  const { base, jacketId, bagId, shoesId, accessoryId } = saved.outfit;
 
   // Resolved here rather than inside Thumbnail because the bottom's canvas picks its box.
   // Called unconditionally — the hook takes null — so the separates/dress branch below stays
@@ -121,7 +123,16 @@ export function OutfitPreview({ saved }: { saved: SavedOutfit }) {
       )}
 
       <Thumbnail id={shoesId} className="right-0 bottom-0 h-[18%] w-[38%]" />
-      <Thumbnail id={accessoryId} className="bottom-0 left-0 h-[22%] w-[30%]" />
+      {/* Bag and accessory swapped places when bags split out (2026-08-02 Decision 7): a bag
+          hangs at hip level and is the bigger object, so it takes the bottom corner and the
+          accessory rides up the body. Both stay clear of the bottoms boxes above —
+          object-contain centres each garment in its box, so the few percent of overlap with a
+          full-length leg never shows. */}
+      <Thumbnail id={bagId} className="bottom-0 left-0 h-[24%] w-[32%]" />
+      <Thumbnail
+        id={accessoryId}
+        className="top-[46%] left-0 h-[19%] w-[25%]"
+      />
     </div>
   );
 }

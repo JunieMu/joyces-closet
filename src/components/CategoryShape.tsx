@@ -28,6 +28,10 @@ const SHAPE_PATH: Record<ItemCategory, string> = {
   jackets:
     "M6.4 19.6 A4.6 4.6 0 0 1 6.1 10.42 A5.9 5.9 0 0 1 16.9 7.9 " +
     "A4.9 4.9 0 0 1 18.2 19.6 Z",
+  // teardrop — a point at the top over a round bulb, the inverse silhouette of the heart
+  bags:
+    "M12 2 C10.4 5.5 4.6 11 4.6 14.6 A7.4 7.4 0 0 0 19.4 14.6 " +
+    "C19.4 11 13.6 5.5 12 2 Z",
   // four-point sparkle, concave between the points
   shoes:
     "M12 1.2 C13.15 8.4 15.6 10.85 22.8 12 C15.6 13.15 13.15 15.6 12 22.8 " +

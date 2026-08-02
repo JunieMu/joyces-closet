@@ -3,7 +3,7 @@ import type { Rng } from "../../lib/rng";
 import type { Outfit, OutfitBase } from "./outfit";
 
 export type SlotName =
-  "base" | "top" | "bottom" | "jacket" | "shoes" | "accessory";
+  "base" | "top" | "bottom" | "jacket" | "bag" | "shoes" | "accessory";
 
 /** Uniform index in [0, n). Clamped so an `rng` that ever returns exactly 1 can't overflow. */
 function rollIndex(n: number, rng: Rng): number {
@@ -29,6 +29,12 @@ function pickRequired(items: ClosetItem[], rng: Rng, slot: string): ClosetItem {
 /**
  * Uniform over `items.length + 1` options, the extra one being "none" (Decision 7).
  * 3 jackets ⇒ a 1-in-4 chance of no jacket, matching the old app's `none.png` slot.
+ *
+ * Bags splitting out of accessories (2026-08-02 Decision 1) made this two independent rolls
+ * where there was one, and that arithmetic change is the POINT of the feature, not a side
+ * effect: bare-flank outfits get rarer — `1/((a+1)(b+1))` instead of `1/(a+b+1)` — and each
+ * individual bag appears far more often, since it now competes against the other bags rather
+ * than against every accessory.
  */
 function pickOptional(items: ClosetItem[], rng: Rng): ClosetItem | null {
   const index = rollIndex(items.length + 1, rng);
@@ -97,6 +103,7 @@ export function shuffleOutfit(closet: Closet, rng: Rng): Outfit | null {
   return {
     base: shuffleBase(closet, rng),
     jacketId: pickOptional(closet.jackets, rng)?.id ?? null,
+    bagId: pickOptional(closet.bags, rng)?.id ?? null,
     shoesId: pickRequired(closet.shoes, rng, "shoes").id,
     accessoryId: pickOptional(closet.accessories, rng)?.id ?? null,
   };
@@ -138,6 +145,12 @@ export function shuffleSlot(
       return {
         ...outfit,
         jacketId: pickOptional(closet.jackets, rng)?.id ?? null,
+      };
+
+    case "bag":
+      return {
+        ...outfit,
+        bagId: pickOptional(closet.bags, rng)?.id ?? null,
       };
 
     case "shoes":

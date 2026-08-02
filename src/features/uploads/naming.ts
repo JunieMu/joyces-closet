@@ -7,6 +7,7 @@ const CATEGORY_NOUN: Record<ItemCategory, string> = {
   bottoms: "Bottoms",
   dresses: "Dress",
   jackets: "Jacket",
+  bags: "Bag",
   shoes: "Shoes",
   accessories: "Accessory",
 };

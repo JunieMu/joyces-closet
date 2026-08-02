@@ -1,16 +1,7 @@
-import type { Closet, ClosetItem, ItemCategory } from "./types";
-
-const CATEGORIES: ItemCategory[] = [
-  "tops",
-  "bottoms",
-  "dresses",
-  "jackets",
-  "shoes",
-  "accessories",
-];
+import { CATEGORIES, type Closet, type ClosetItem } from "./types";
 
 /**
- * Files a flat list of uploads into the six category arrays. Insertion order is preserved
+ * Files a flat list of uploads into the seven category arrays. Insertion order is preserved
  * within a category, so an existing rail position never shifts when something new is added.
  *
  * This is the whole closet now — there is no built-in manifest underneath it, so every

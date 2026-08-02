@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 
 import { CategoryShape } from "../../components/CategoryShape";
 import {
-  CATEGORIES,
   CATEGORY_LABEL,
   RAIL_ALIGN,
   RAIL_FRAME,
   RAIL_IMAGE_WIDTH,
 } from "../closet/railScale";
-import type { ItemCategory } from "../closet/types";
+import { CATEGORIES, type ItemCategory } from "../closet/types";
 import { useClosetStore } from "../closet/useClosetStore";
 import { defaultItemName } from "./naming";
 import { isUploadError } from "./pipeline/errors";

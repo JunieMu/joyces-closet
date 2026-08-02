@@ -21,6 +21,10 @@
   --color-tint-bottoms: #9aa47f;
   --color-tint-dresses: #ab8fc0;
   --color-tint-jackets: #c9a06a;
+  /* Dusty blue (2026-08-02 Decision 8): the one region of the wheel the other six leave
+     empty. Re-derived per preset below rather than copied — lavender and seaglass already
+     spend a dusty blue elsewhere and diverge. */
+  --color-tint-bags: #8b9bb5;
   --color-tint-shoes: #bd7f63;
   --color-tint-accessories: #83a8a3;
 
@@ -162,6 +166,7 @@
   --color-tint-bottoms: #9aa47f;
   --color-tint-dresses: #ab8fc0;
   --color-tint-jackets: #c9a06a;
+  --color-tint-bags: #8b9bb5; /* dusty blue — @theme holds the rosewood default */
   --color-tint-shoes: #bd7f63;
   --color-tint-accessories: #83a8a3;
   --color-aura-1: #e8b3a6;
@@ -182,6 +187,9 @@
   --color-tint-bottoms: #8f9dbb;
   --color-tint-dresses: #a48bc4;
   --color-tint-jackets: #b39a6f;
+  /* Diverges from the dusty blue: bottoms already holds that hue here (#8f9dbb). The one
+     wide gap in this preset is gold→teal, so bags takes a muted sage-mint. */
+  --color-tint-bags: #8fae9b;
   --color-tint-shoes: #a3799a;
   --color-tint-accessories: #7fa5ad;
   --color-aura-1: #cdb8e3;
@@ -202,6 +210,7 @@
   --color-tint-bottoms: #8ba173;
   --color-tint-dresses: #ab8fb8;
   --color-tint-jackets: #c1a05e;
+  --color-tint-bags: #8598b8; /* dusty blue reads as water/sky here; 55° off accessories */
   --color-tint-shoes: #a97e5f;
   --color-tint-accessories: #77a08e;
   --color-aura-1: #bcd0a8;
@@ -222,6 +231,10 @@
   --color-tint-bottoms: #7fa596;
   --color-tint-dresses: #9d92bb;
   --color-tint-jackets: #b8a37e;
+  /* Diverges from the dusty blue: tops already holds that hue here (#8fa9b8) — Decision 8's
+     stated caveat. The empty region is violet→clay, so bags takes a muted mauve-rose, ~60°
+     clear of both neighbours. */
+  --color-tint-bags: #ab8fa4;
   --color-tint-shoes: #ad8577;
   --color-tint-accessories: #6f9faa;
   --color-aura-1: #a8cec6;
@@ -242,6 +255,7 @@
   --color-tint-bottoms: #a89a5f;
   --color-tint-dresses: #c48ba4;
   --color-tint-jackets: #b98a4e;
+  --color-tint-bags: #8298b5; /* dusty blue; 84° off the sage accessories */
   --color-tint-shoes: #a76b52;
   --color-tint-accessories: #8aa08c;
   --color-aura-1: #ecc0a0;
@@ -313,13 +327,20 @@ body {
   }
 }
 
-/* Paper-doll canvas (Decision 6): mobile = paired rows, desktop = 3-col body composition. */
+/* Paper-doll canvas (Decision 6): mobile = paired rows, desktop = 3-col body composition.
+
+   The bag takes a full-width row of its own (2026-08-02 Decision 4) rather than tucking into
+   the free half-cell under the jacket. Six rails in two columns with `bottom` spanning both
+   leaves a hole whichever way they are arranged, and every HALF-column rail is clamped to the
+   same ~101px window regardless of its frame height — so the spanning row is the only slot
+   whose size is actually controllable on a phone. */
 .paper-doll {
   display: grid;
   grid-template-areas:
     "jacket top"
+    "bag    bag"
     "bottom bottom"
-    "shoes accessory";
+    "shoes  accessory";
   grid-template-columns: 1fr 1fr;
   column-gap: 0.75rem;
   row-gap: 1.5rem;
@@ -330,10 +351,16 @@ body {
   .paper-doll {
     grid-template-areas:
       "jacket top accessory"
-      ". bottom shoes";
-    /* The jacket column matches the centre so square jackets render at the same scale as
-       tops once the rail arrows take their share; the small-slot column can stay leaner. */
-    grid-template-columns: 1.15fr 1.15fr 1fr;
+      "bag    bottom shoes";
+    /* The jacket column is the widest (2026-08-02 Decision 5), reversing the tops/jackets
+       parity this comment used to assert. Jackets are width-bound at every viewport ≥768px —
+       the window peaks at 245.8px against a 256px frame — so RAIL_FRAME.jackets alone is inert
+       and the column ratio is the only lever. Bags share the column beneath it.
+
+       Below ~1272px viewport the three columns cannot all be full size (they want
+       288+256+128 of frame plus 3×72 of arrows plus gaps ≈ 920px of content), and the small
+       column is what gives up the room. */
+    grid-template-columns: 1.3fr 1.15fr 0.85fr;
     column-gap: 1rem;
   }
 }
@@ -503,7 +530,7 @@ body {
    Today's `.aura` above is the centerpiece and is not touched (Decision 14). The variants
    below are its siblings: same DOM shape — container positions and blooms, children carry
    colour and breathe — but softness comes from long gradient falloff rather than
-   blur(56px) (Decision 12). That is the performance answer for the closet's seven pools and
+   blur(56px) (Decision 12). That is the performance answer for the closet's eight pools and
    a differentiation axis at once: Today is a blurred cloud, the rest are washes.
 
    All three sit at z-index -1 under a `position: relative` parent that is deliberately NOT
@@ -672,9 +699,9 @@ body {
   height: 13rem;
 }
 .aura-pool-header {
-  /* The gingham thread tempered by aura-2, per Decision 2 — see the horizon above. The six
+  /* The gingham thread tempered by aura-2, per Decision 2 — see the horizon above. The seven
      section tints below need no tempering: they are already the muted watercolour tones the
-     category system is built on, and mixing them would blur the six apart-ness Decision 10
+     category system is built on, and mixing them would blur the apart-ness Decision 10
      is entirely about. */
   --aura-pool: color-mix(
     in srgb,
@@ -735,8 +762,8 @@ body {
 
 /* One tint per category, mirroring the .wash-* idiom above. The delay lives here rather than
    on the shared rule because no two pools may breathe in phase (Decision 15 #3) and these
-   sit in six different parents, so nth-child cannot reach them. Seven distinct phases against
-   one 48s cycle. */
+   sit in seven different parents, so nth-child cannot reach them. Eight distinct phases
+   against one 48s cycle — the seven section pools plus the header pool at delay 0. */
 .aura-pool-tops {
   --aura-pool: var(--color-tint-tops);
 }
@@ -772,6 +799,12 @@ body {
 }
 .aura-pool-accessories > div {
   animation-delay: -39s;
+}
+.aura-pool-bags {
+  --aura-pool: var(--color-tint-bags);
+}
+.aura-pool-bags > div {
+  animation-delay: -46s;
 }
 
 @keyframes aura-pool-breathe {

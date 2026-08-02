@@ -8,13 +8,14 @@ import {
   isOutfitShape,
   isOutfitValid,
   repairOutfit,
+  withBagDefault,
   type Outfit,
 } from "./outfit";
 import { shuffleOutfit, shuffleSlot, type SlotName } from "./shuffle";
 
 /** Slots the rails can browse. "dress" is the merged base rail (dormant until dresses exist). */
 export type EditableSlot =
-  "top" | "bottom" | "dress" | "jacket" | "shoes" | "accessory";
+  "top" | "bottom" | "dress" | "jacket" | "bag" | "shoes" | "accessory";
 
 interface ShuffleState {
   /** Null when the closet can't dress anyone yet — a first visit, or the last shoes deleted. */
@@ -50,6 +51,8 @@ function applySlot(
       return { ...outfit, shoesId: itemId };
     case "jacket":
       return { ...outfit, jacketId: itemId };
+    case "bag":
+      return { ...outfit, bagId: itemId };
     case "accessory":
       return { ...outfit, accessoryId: itemId };
   }
@@ -109,8 +112,15 @@ export const useShuffleStore = create<ShuffleState>()(
       // A persisted outfit is only reused if it still makes sense against today's
       // closet — an item deleted since it was stored must never render as a broken
       // image, so anything missing or stale falls back to the fresh initial shuffle.
+      //
+      // Normalized BEFORE validating (2026-08-02 Decision 11): an outfit stored before
+      // bags existed has no `bagId` key, which the strict guard rejects. Without this the
+      // in-progress outfit would silently re-roll on the upgrade. The persist `version` is
+      // deliberately NOT bumped — that would discard it instead of migrating it.
       merge: (persisted, current) => {
-        const stored = (persisted as { outfit?: unknown } | undefined)?.outfit;
+        const stored = withBagDefault(
+          (persisted as { outfit?: unknown } | undefined)?.outfit,
+        );
         const usable =
           isOutfitShape(stored) && isOutfitValid(stored, getCloset());
         return { ...current, outfit: usable ? stored : current.outfit };

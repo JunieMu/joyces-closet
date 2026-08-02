@@ -20,6 +20,7 @@ function fakeStorage() {
 const outfit: Outfit = {
   base: { kind: "separates", topId: "top-tank-3", bottomId: "bottom-skirt-2" },
   jacketId: null,
+  bagId: null,
   shoesId: "shoes-1",
   accessoryId: "accessory-bag-1",
 };
@@ -111,6 +112,57 @@ describe("localStorage outfit store", () => {
     expect(createLocalStorageOutfitStore(storage).list()).toEqual([
       saved("a", "Brunch"),
     ]);
+  });
+
+  // 2026-08-02 Decision 11, end to end. An outfit written before bags existed has no `bagId`
+  // key, which isOutfitShape rejects — and because every mutation read-filter-writes the
+  // WHOLE array, a rejected outfit is permanently deleted by the next save rather than just
+  // failing to display. This is the exact sequence that would lose it.
+  describe("outfits stored before bags existed", () => {
+    const legacyJson = JSON.stringify([
+      {
+        id: "legacy",
+        name: "Brunch",
+        createdAt: "2026-07-13T10:00:00.000Z",
+        outfit: {
+          base: {
+            kind: "separates",
+            topId: "top-tank-3",
+            bottomId: "bottom-skirt-2",
+          },
+          jacketId: null,
+          shoesId: "shoes-1",
+          accessoryId: "accessory-bag-1",
+        },
+      },
+    ]);
+
+    it("reads back with an empty bag slot", () => {
+      storage.map.set(SAVED_OUTFITS_KEY, legacyJson);
+
+      expect(createLocalStorageOutfitStore(storage).list()).toEqual([
+        { ...saved("legacy", "Brunch"), outfit },
+      ]);
+    });
+
+    it("survives a later save of a different outfit", () => {
+      storage.map.set(SAVED_OUTFITS_KEY, legacyJson);
+      const store = createLocalStorageOutfitStore(storage);
+
+      store.save(saved("new", "Dinner"));
+
+      expect(store.list().map((s) => s.id)).toEqual(["legacy", "new"]);
+    });
+
+    it("survives a delete of a different outfit", () => {
+      storage.map.set(SAVED_OUTFITS_KEY, legacyJson);
+      const store = createLocalStorageOutfitStore(storage);
+      store.save(saved("new", "Dinner"));
+
+      store.delete("new");
+
+      expect(store.list().map((s) => s.id)).toEqual(["legacy"]);
+    });
   });
 
   it("recovers from corrupt storage on the next save", () => {

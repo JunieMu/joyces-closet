@@ -20,9 +20,20 @@ describe("getCloset", () => {
     expect(Object.values(getCloset()).flat()).toEqual([]);
   });
 
+  // Hand-written on purpose, rather than imported from types.ts: this is an independent
+  // canary, so a future category added to the single source of truth without thinking fails
+  // a test here instead of losing data at some storage seam.
   it("has an entry for every category, even when empty", () => {
     expect(Object.keys(getCloset()).sort()).toEqual(
-      ["accessories", "bottoms", "dresses", "jackets", "shoes", "tops"].sort(),
+      [
+        "accessories",
+        "bags",
+        "bottoms",
+        "dresses",
+        "jackets",
+        "shoes",
+        "tops",
+      ].sort(),
     );
   });
 

@@ -1,5 +1,5 @@
-import type { ItemCategory } from "../closet/types";
-import { isOutfitShape } from "../shuffle/outfit";
+import { isItemCategory, type ItemCategory } from "../closet/types";
+import { isOutfitShape, withSavedBagDefault } from "../shuffle/outfit";
 import type { SavedOutfit } from "../outfits/store";
 import { isPlanEntry, type PlanEntry } from "../week/plan";
 import type { TopSubtype } from "./types";
@@ -12,17 +12,12 @@ export const BACKUP_KIND = "joyces-closet:backup";
  * gracefully in both directions — an old build ignores the unknown key, and a new build
  * reading an old file coerces the missing array to []. The only cost is that an old build
  * re-exporting drops plans, which is a non-issue for a single-user, per-browser app.
+ *
+ * `bags` is the second field added under that rule (2026-08-02 Decision 12). A bump would
+ * make an older cached bundle reject the ENTIRE file — items, outfits and plans — rather
+ * than dropping just the bag items into `skipped`.
  */
 export const BACKUP_VERSION = 1;
-
-const CATEGORIES = new Set<string>([
-  "tops",
-  "bottoms",
-  "dresses",
-  "jackets",
-  "shoes",
-  "accessories",
-]);
 
 const SUBTYPES = new Set<string>(["shirt", "sweater", "tank"]);
 
@@ -85,8 +80,7 @@ function isBackupItem(value: unknown): value is BackupItem {
   return (
     typeof item.id === "string" &&
     typeof item.name === "string" &&
-    typeof item.category === "string" &&
-    CATEGORIES.has(item.category) &&
+    isItemCategory(item.category) &&
     (item.subtype === undefined ||
       (typeof item.subtype === "string" && SUBTYPES.has(item.subtype))) &&
     typeof item.createdAt === "string" &&
@@ -162,7 +156,9 @@ export function decodeBackup(text: string): DecodedBackup {
   const rawPlans = Array.isArray(file.plans) ? file.plans : [];
 
   const items = rawItems.filter(isBackupItem);
-  const outfits = rawOutfits.filter(isSavedOutfit);
+  // Backup files on disk are permanent artifacts, so a file written before bags existed —
+  // whose outfits have no `bagId` key — must keep importing forever (Decision 11).
+  const outfits = rawOutfits.map(withSavedBagDefault).filter(isSavedOutfit);
   const plans = rawPlans.filter(isPlanEntry);
   const skipped =
     rawItems.length -

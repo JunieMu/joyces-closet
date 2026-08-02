@@ -10,13 +10,20 @@ import { TodayPlan } from "../week/TodayPlan";
 import { missingForOutfit, type MissingCategory } from "./shuffle";
 import { useShuffleStore } from "./useShuffleStore";
 
-/** Rails enter top-to-bottom on Shuffle All, so the outfit cascades into place (Decision 11). */
+/**
+ * Rails enter top-to-bottom on Shuffle All, so the outfit cascades into place (Decision 11).
+ *
+ * The 70ms step is preserved exactly (2026-07-30 shuffle-rail-slide-animation Decision 3);
+ * a sixth rail necessarily extends the ladder rather than renumbering it, so `bag` slots in
+ * before `accessory` as a carried finishing touch and the last rail settles at 750ms.
+ */
 const CASCADE_MS = {
   top: 0,
   jacket: 70,
   bottom: 140,
   shoes: 210,
-  accessory: 280,
+  bag: 280,
+  accessory: 350,
 };
 
 const MISSING_LABEL: Record<MissingCategory, string> = {
@@ -157,6 +164,25 @@ export function ShufflePage() {
               cascadeTick={tick}
               cascadeDelayMs={CASCADE_MS.jacket}
               category="jackets"
+            />
+          </div>
+
+          {/* Beneath the jacket, sharing its wide column: a bag is a hero object, not a
+              trinket. Placed here in source order so the mobile reading order — jacket/top →
+              bag → bottom → shoes/accessory — is also the tab order. */}
+          <div className="[grid-area:bag] md:self-center">
+            <Rail
+              label="Bags"
+              items={closet.bags}
+              activeId={outfit.bagId}
+              allowNone
+              emptyLabel="no bag"
+              onChange={(id) => setSlot("bag", id)}
+              onShuffle={() => shuffleSlot("bag")}
+              className={RAIL_FRAME.bags}
+              cascadeTick={tick}
+              cascadeDelayMs={CASCADE_MS.bag}
+              category="bags"
             />
           </div>
 

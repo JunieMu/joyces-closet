@@ -8,8 +8,38 @@ export type OutfitBase =
 export interface Outfit {
   base: OutfitBase;
   jacketId: string | null; // optional slot
+  bagId: string | null; // optional slot
   shoesId: string; // required slot
   accessoryId: string | null; // optional slot
+}
+
+/**
+ * Fills in `bagId` on outfits stored before bags existed (2026-08-02 Decision 11).
+ *
+ * `isOutfitShape` stays STRICT — `undefined` is not `null`, and loosening `optionalOk` would
+ * loosen jacketId and accessoryId too while leaving bagId genuinely undefined behind a type
+ * that promises `string | null`. So every read boundary normalizes first instead. There are
+ * three: localStorage, backup import, and the persisted current outfit.
+ *
+ * Getting this wrong is deletion, not a display bug: localStorageStore reads, filters and
+ * rewrites the whole array on every save and delete, so an outfit the guard rejects is gone on
+ * the next mutation.
+ *
+ * Backup files on disk are permanent artifacts, so this must keep working FOREVER — not just
+ * through this release.
+ */
+export function withBagDefault(value: unknown): unknown {
+  if (typeof value !== "object" || value === null) return value;
+  const outfit = value as Record<string, unknown>;
+  if (outfit.bagId !== undefined) return value;
+  return { ...outfit, bagId: null };
+}
+
+/** The SavedOutfit wrapper around it — the form both storage seams actually read. */
+export function withSavedBagDefault(value: unknown): unknown {
+  if (typeof value !== "object" || value === null) return value;
+  const saved = value as Record<string, unknown>;
+  return { ...saved, outfit: withBagDefault(saved.outfit) };
 }
 
 function inCategory(
@@ -45,6 +75,7 @@ export function isOutfitShape(value: unknown): value is Outfit {
     baseOk &&
     typeof outfit.shoesId === "string" &&
     optionalOk(outfit.jacketId) &&
+    optionalOk(outfit.bagId) &&
     optionalOk(outfit.accessoryId)
   );
 }
@@ -63,6 +94,8 @@ export function isOutfitValid(outfit: Outfit, closet: Closet): boolean {
 
   const jacketValid =
     outfit.jacketId === null || inCategory(closet, "jackets", outfit.jacketId);
+  const bagValid =
+    outfit.bagId === null || inCategory(closet, "bags", outfit.bagId);
   const accessoryValid =
     outfit.accessoryId === null ||
     inCategory(closet, "accessories", outfit.accessoryId);
@@ -70,6 +103,7 @@ export function isOutfitValid(outfit: Outfit, closet: Closet): boolean {
   return (
     baseValid &&
     jacketValid &&
+    bagValid &&
     accessoryValid &&
     inCategory(closet, "shoes", outfit.shoesId)
   );
@@ -86,10 +120,13 @@ export function outfitUsesItem(outfit: Outfit, id: string): boolean {
       ? outfit.base.topId === id || outfit.base.bottomId === id
       : outfit.base.dressId === id;
 
+  // Every slot must be listed here by hand — widening `Outfit` produces no error in this
+  // function, and a miss under-reports the delete confirmation's blast radius.
   return (
     baseUses ||
     outfit.shoesId === id ||
     outfit.jacketId === id ||
+    outfit.bagId === id ||
     outfit.accessoryId === id
   );
 }
@@ -116,6 +153,10 @@ export function repairOutfit(outfit: Outfit, closet: Closet): Outfit | null {
     jacketId:
       outfit.jacketId !== null && inCategory(closet, "jackets", outfit.jacketId)
         ? outfit.jacketId
+        : null,
+    bagId:
+      outfit.bagId !== null && inCategory(closet, "bags", outfit.bagId)
+        ? outfit.bagId
         : null,
     shoesId: shoes,
     accessoryId:
